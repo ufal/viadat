@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Upload } from './Upload';
 import { Metadata } from './Metadata'
 
-import {update_source, update_group, fetch_entry, fetch_groups, upload_source_files, create_source, fetch_sources, fetch_transcripts, create_transcription} from '../services/entries';
+import {update_source, autodetect_source_metadata, update_group, fetch_entry, fetch_groups, upload_source_files, create_source, fetch_sources, fetch_transcripts, create_transcription} from '../services/entries';
 import update from 'react-addons-update';
 
 
@@ -21,10 +21,14 @@ class SourceItem extends Component {
         })
     }
 
-    updateMetadata(metadata) {
+    updateMetadata = metadata => {
         update_source(this.props.source, {metadata: metadata}).then(() => {
             this.props.entry.reload();
         })
+    }
+
+    autodetectMetadata = _ => {
+        return autodetect_source_metadata(this.props.source._id);
     }
 
     get canUpload() {
@@ -48,7 +52,9 @@ class SourceItem extends Component {
         return (<div>
             <h3>{this.props.source.metadata.title}</h3>
 
-            <Metadata metadata={this.props.source.metadata} onUpdate={(m) => this.updateMetadata(m)}/>
+            <Metadata metadata={this.props.source.metadata}
+                      onUpdate={this.updateMetadata}
+                      onAutodetect={this.autodetectMetadata}/>
 
             <Upload
                 show={this.state.showUploadDialog}

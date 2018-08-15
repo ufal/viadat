@@ -18,6 +18,7 @@ from eve.auth import TokenAuth
 from .text.tools import load_transcript
 from .text.analyze import analyze_transcript
 
+
 import uuid
 import mimetypes
 
@@ -380,6 +381,36 @@ def generate_labelfile(transcript_id):
             e2.set("to", str(instance["to"]))
             e.append(e2)
     return et.tostring(root)
+
+
+@app.route('/sources/<source_id>/autodetect')
+def source_autodetect(source_id):
+    sources_db = app.data.driver.db["sources"]
+    source = sources_db.find_one({"_id": ObjectId(source_id)})
+    assert source  # TODO 404
+
+
+    docs = [f for f in source["files"] if f["kind"] == "doc"]
+    assert docs
+
+    doc = docs[0]
+
+    transcript = load_transcript(filename(doc["uuid"]))
+    properties = {p.get("name").lower(): p.get("value") for p in transcript.iter("property")}
+
+    def cleanup(value):
+        if "(" in value:
+            value = value[:value.index("(")]
+        return value.strip()
+
+
+    result = {
+        "title": properties.get("přepis rozhovoru"),
+        "narrator": cleanup(properties.get("jméno a příjmení narátora/ky"))
+    }
+
+    return jsonify(result)
+
 
 @app.route('/export', methods=['POST'])
 def export():

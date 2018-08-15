@@ -34,6 +34,10 @@ export function create_source(source) {
   return call_service_json("sources", source);
 }
 
+export function autodetect_source_metadata(source_id) {
+  return call_service_json("sources/" + source_id + "/autodetect")
+}
+
 export function update_source(source, update) {
   return call_service("sources/" + source._id, update, "PATCH", source._etag);
 }

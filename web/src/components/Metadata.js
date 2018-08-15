@@ -22,7 +22,8 @@ class MetadataDialog extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            metadata: props.metadata
+            metadata: props.metadata,
+            autodetecting: false,
         };
 
     }
@@ -46,13 +47,20 @@ class MetadataDialog extends Component {
     statusText() {
         if (this.state.metadata.status === "r") {
             return "Set as Private"
-        } else if (!this.state.metadata.status) {
+        } else if (!this.state.metadata.status || this.state.metadata.status === "x") {
             return "Set as Ready"
         }
     }
 
     get disabled() {
-        return !(this.state.metadata.status === "r" || this.state.metadata.status === undefined || this.state.metadata.status === "x");
+        return this.state.autodetecting || !(this.state.metadata.status === "r" || this.state.metadata.status === undefined || this.state.metadata.status === "x");
+    }
+
+    autodetect = () => {
+        this.setState(() => ({autodetecting: true}));
+        this.props.onAutodetect().then(m => {
+            this.setState({...this.state, metadata: m, autodetecting: false});
+        })
     }
 
     render() {
@@ -103,6 +111,8 @@ class MetadataDialog extends Component {
 
 
         <Modal.Footer>
+        {this.state.autodetecting && "Detecting ... "}
+        {this.props.onAutodetect && <Button disabled={this.disabled} onClick={this.autodetect}>Autodetect</Button>}
         <Button disabled={this.disabled} onClick={() => {this.props.onUpdate(this.state.metadata); this.props.onClose()}}>Update</Button>
         </Modal.Footer>
         </Modal.Body>
@@ -129,6 +139,7 @@ export class Metadata extends Component {
                 metadata={this.props.metadata}
                 show={this.state.showEditDialog}
                 onUpdate={this.props.onUpdate}
+                onAutodetect={this.props.onAutodetect}
                 onClose={() => this.setState(update(this.state, {showEditDialog: {$set: false}}))}/>
             <a role="button" onClick={(e) => this.onEdit(e)}>Metadata</a> <StatusLabel status={this.props.metadata.status}/>
             </span>
