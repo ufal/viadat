@@ -43,8 +43,8 @@ class Export extends Component {
             <h2>Ready sources</h2>
 
             <ul>
-                {this.state.readySources.map(s => <li key={s._id}>{s.metadata.title}</li>)}
-                {this.state.readyGroups.map(s => <li key={s._id}>{s.metadata.title}</li>)}
+                {this.state.readySources.map(s => <li key={s._id}>{s.metadata.dc_title}</li>)}
+                {this.state.readyGroups.map(s => <li key={s._id}>{s.metadata.dc_title}</li>)}
             </ul>
 
 
