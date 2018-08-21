@@ -72,8 +72,8 @@ entries_schema = {
 metadata_type = {
     'type': 'dict',
     'schema': {
-        'title': required_string,
-        'narrator': simple_string,
+        'dc_title': required_string,
+        'viadat_narrator_name': simple_string,
         'status': simple_string,
     }
 }
@@ -305,14 +305,20 @@ exts = {
     ".wav": "audio"
 }
 
+repo_known_names = ["dc_title",
+                    "viadat_narrator_name"]
+
 
 def metadata_to_repo_item(metadata):
-    return [
-            {"key": "dc.title", "value": metadata["title"], "language": None},
-            {"key": "viadat.narrator.name",
-             "value": metadata["narrator"],
-             "language": None},
-    ]
+    result = []
+    for name in repo_known_names:
+        value = metadata.get(name)
+        if value:
+            result.append(
+                {"key": name.replace("_", "."),
+                 "value": value,
+                 "language": None})
+    return result
 
 
 def generate_labelfile(transcript_id):
@@ -360,7 +366,8 @@ def source_autodetect(source_id):
     assert source  # TODO 404
 
     docs = [f for f in source["files"] if f["kind"] == "doc"]
-    assert docs
+    if not docs:
+        return jsonify({"error": "No source document found"})
 
     doc = docs[0]
 
@@ -374,8 +381,8 @@ def source_autodetect(source_id):
         return value.strip()
 
     result = {
-        "title": properties.get("přepis rozhovoru"),
-        "narrator": cleanup(properties.get("jméno a příjmení narátora/ky"))
+        "dc_title": properties.get("přepis rozhovoru"),
+        "viadat_narrator_name": cleanup(properties.get("jméno a příjmení narátora/ky"))
     }
 
     return jsonify(result)
@@ -402,7 +409,7 @@ def export():
 
     for source in ready_sources:
         metadata = source["metadata"]
-        logging.info("Exporting source %s", metadata["title"])
+        logging.info("Exporting source %s", metadata["dc_title"])
         item = metadata_to_repo_item(metadata)
         remote_item = collection.create_item(item)
 
@@ -413,7 +420,7 @@ def export():
         sources_db.update({"_id": source["_id"]},
                           {"$set": {"metadata.status": "p"}})
 
-        logging.info("Exported %s", metadata["title"])
+        logging.info("Exported %s", metadata["dc_title"])
 
     # Export sources
 
@@ -423,7 +430,7 @@ def export():
 
     for group in ready_groups:
         metadata = group["metadata"]
-        logging.info("Exporting group %s", metadata["title"])
+        logging.info("Exporting group %s", metadata["dc_title"])
         item = metadata_to_repo_item(metadata)
         remote_item = collection.create_item(item)
 
@@ -436,7 +443,7 @@ def export():
                 remote_item.add_bitstream(
                     f.name, "application/xml", t["name"] + ".labels.xml")
 
-        logging.info("Exported %s", metadata["title"])
+        logging.info("Exported %s", metadata["dc_title"])
     return "Ok"
 
 
@@ -494,7 +501,7 @@ def create_at(source_id):
         transcripts.append(transcript)
 
     metadata = source["metadata"]
-    metadata["title"] = "Annotated " + metadata["title"]
+    metadata["dc_title"] = "Annotated " + metadata["dc_title"]
     if "status" in metadata:
         del metadata["status"]
     t_item = {

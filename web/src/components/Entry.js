@@ -168,7 +168,7 @@ class Entry extends Component {
         create_source({
             entry: this.state.entry._id,
             metadata: {
-                title: this.state.entry.name,
+                "dc_title": this.state.entry.name,
             },
             files: []
         }).then(() => {

@@ -24,6 +24,7 @@ class MetadataDialog extends Component {
         this.state = {
             metadata: props.metadata,
             autodetecting: false,
+            message: null,
         };
 
     }
@@ -57,9 +58,13 @@ class MetadataDialog extends Component {
     }
 
     autodetect = () => {
-        this.setState(() => ({autodetecting: true}));
+        this.setState(() => ({autodetecting: true, message: "Autodetecting ..."}));
         this.props.onAutodetect().then(m => {
-            this.setState({...this.state, metadata: m, autodetecting: false});
+            if (m.error) {
+                this.setState({...this.state, autodetecting: false, message: m.error});
+            } else {
+                this.setState({...this.state, metadata: m, autodetecting: false, message: "Done"});
+            }
         })
     }
 
@@ -84,34 +89,34 @@ class MetadataDialog extends Component {
 
 
         <FormGroup
-          controlId="title"
+          controlId="dc_title"
           validationState={this.getValidationState()}
         >
           <ControlLabel>Title</ControlLabel>
           <FormControl
             disabled={this.disabled}
-            value={this.state.metadata.title}
-            onChange={(e) => this.setState(update(this.state, {metadata: {title: {$set: e.target.value}}}))}
+            value={this.state.metadata["dc_title"] || ""}
+            onChange={(e) => this.setState(update(this.state, {metadata: {"dc_title": {$set: e.target.value}}}))}
           >
           </FormControl>
           </FormGroup>
 
 
         <FormGroup
-          controlId="title"
+          controlId="viadat_narrator_name"
         >
           <ControlLabel>Narrator</ControlLabel>
           <FormControl
             disabled={this.disabled}
-            value={this.state.metadata.narrator || ""}
-            onChange={(e) => this.setState(update(this.state, {metadata: {narrator: {$set: e.target.value}}}))}
+            value={this.state.metadata["viadat_narrator_name"] || ""}
+            onChange={(e) => this.setState(update(this.state, {metadata: {"viadat_narrator_name": {$set: e.target.value}}}))}
           >
           </FormControl>
           </FormGroup>
 
 
         <Modal.Footer>
-        {this.state.autodetecting && "Detecting ... "}
+        {this.state.message}{" "}
         {this.props.onAutodetect && <Button disabled={this.disabled} onClick={this.autodetect}>Autodetect</Button>}
         <Button disabled={this.disabled} onClick={() => {this.props.onUpdate(this.state.metadata); this.props.onClose()}}>Update</Button>
         </Modal.Footer>
