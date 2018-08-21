@@ -112,7 +112,7 @@ transcripts_schema = {
     'uuid': simple_string,
     'audio': {
        'type': 'dict',
-        'schema': {
+       'schema': {
             'source': ref("sources"),
             'uuid': simple_string,
         }
@@ -216,7 +216,8 @@ settings = {
 
 class TokenAuthenticator(TokenAuth):
     def check_auth(self, token, allowed_roles, resource, method):
-        return app.data.driver.db["users"].find_one({"token": token}) is not None
+        users_db = app.data.driver.db["users"]
+        return users_db.find_one({"token": token}) is not None
 
 
 FILES = "/home/spirali/projects/viadat/files"
@@ -238,41 +239,6 @@ def lemmatize():
     text = request.args["q"]
     lemmas = analyze.get_lemmas(text)
     return jsonify(lemmas)
-
-
-"""
-@app.route("/search")
-def search():
-    text = request.args["q"]
-    lemma_set = analyze.get_lemmas(text)
-    lemmas_db = app.data.driver.db["lemmas"]
-    entries_db = app.data.driver.db["entries"]
-    transcripts_db = app.data.driver.db["transcripts"]
-
-    result = lemmas_db.find({"value": {"$in": list(lemma_set)}})
-    print(result)
-    hits = {}
-    for item in result:
-        for document in item["items"]:
-            document = str(document)
-            hits.setdefault(document, 1)
-            hits[document] += 1
-
-    items = []
-    for (document, count) in sorted(hits.items(), reverse=True):
-        transcript = transcripts_db.find_one({"_id": ObjectId(document)})
-        entry = entries_db.find_one({"_id": item["entry_id"]})
-        items.append({
-            "item_name": item["name"],
-            "transcript": transcript,
-            "entry_name": entry["name"],
-            "entry_id": str(item["entry_id"])
-        })
-    return json.dumps({
-        "lemmaSet": tuple(lemma_set),
-        "items": items
-    })
-"""
 
 
 @app.route('/download/<uid>')
@@ -322,7 +288,8 @@ def run_transcript(item_id):
     with load(item_id) as f:
         transcript = et.parse(f).getroot()
 
-    transcript = force_alignment(transcript, audio_file, audio_item["file_type"])
+    transcript = force_alignment(
+        transcript, audio_file, audio_item["file_type"])
 
     with store(item_id) as f:
         f.write(et.tostring(transcript))
@@ -342,7 +309,9 @@ exts = {
 def metadata_to_repo_item(metadata):
     return [
             {"key": "dc.title", "value": metadata["title"], "language": None},
-            {"key": "viadat.narrator.name", "value": metadata["narrator"], "language": None},
+            {"key": "viadat.narrator.name",
+             "value": metadata["narrator"],
+             "language": None},
     ]
 
 
@@ -352,7 +321,8 @@ def generate_labelfile(transcript_id):
     labels_db = app.data.driver.db["labels"]
     categories_db = app.data.driver.db["labelcategories"]
 
-    instances = list(labelinstances_db.find({"transcript": ObjectId(transcript_id)}))
+    instances = list(labelinstances_db.find(
+        {"transcript": ObjectId(transcript_id)}))
     labels = {k: [] for k in set(instance["label"] for instance in instances)}
 
     for instance in instances:
@@ -389,20 +359,19 @@ def source_autodetect(source_id):
     source = sources_db.find_one({"_id": ObjectId(source_id)})
     assert source  # TODO 404
 
-
     docs = [f for f in source["files"] if f["kind"] == "doc"]
     assert docs
 
     doc = docs[0]
 
     transcript = load_transcript(filename(doc["uuid"]))
-    properties = {p.get("name").lower(): p.get("value") for p in transcript.iter("property")}
+    properties = {p.get("name").lower(): p.get("value")
+                  for p in transcript.iter("property")}
 
     def cleanup(value):
         if "(" in value:
             value = value[:value.index("(")]
         return value.strip()
-
 
     result = {
         "title": properties.get("přepis rozhovoru"),
@@ -441,7 +410,8 @@ def export():
             logging.info("Uploading %s", f["name"])
             mime = mt.guess_type(f["name"])[0]
             remote_item.add_bitstream(filename(f["uuid"]), mime, f["name"])
-        sources_db.update({"_id": source["_id"]}, {"$set": {"metadata.status": "p"}})
+        sources_db.update({"_id": source["_id"]},
+                          {"$set": {"metadata.status": "p"}})
 
         logging.info("Exported %s", metadata["title"])
 
@@ -493,7 +463,8 @@ def upload_entry_item(source_id):
                 "uuid": uid,
                 "size": filesize(uid)
             }
-            sources_db.update({"_id": source_id}, {"$push": {"files": fileitem}})
+            sources_db.update({"_id": source_id},
+                              {"$push": {"files": fileitem}})
 
         return "{}"
 
@@ -518,7 +489,8 @@ def create_at(source_id):
     for doc, audio in zip(docs, audios):
         transcript = load_transcript(filename(doc["uuid"]))
         transcript = analyze_transcript(transcript)
-        transcript = force_alignment(transcript, filename(audio["uuid"]), "mp3")
+        transcript = force_alignment(
+            transcript, filename(audio["uuid"]), "mp3")
         transcripts.append(transcript)
 
     metadata = source["metadata"]
@@ -552,9 +524,11 @@ def create_at(source_id):
 
         lemmas = set(lemma.get("value") for lemma in transcript.iter("lemma"))
         for lemma in lemmas:
-            lemma_db.update({"value": lemma}, {"$push": {"transcripts": transcript_id}}, True)
+            lemma_db.update({"value": lemma},
+                            {"$push": {"transcripts": transcript_id}}, True)
 
     return "Ok"
+
 
 @app.route('/login', methods=['POST'])
 def login():
