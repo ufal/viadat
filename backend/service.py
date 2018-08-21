@@ -14,7 +14,7 @@ from .audio.fa import force_alignment
 from .text import analyze
 from .repository import get_repository_collection
 from . import users
-from eve.auth import TokenAuth
+from eve.auth import TokenAuth, requires_auth
 from .text.tools import load_transcript
 from .text.analyze import analyze_transcript
 
@@ -242,6 +242,7 @@ def lemmatize():
 
 
 @app.route('/download/<uid>')
+@requires_auth("sources")
 def download_item(uid):
     filename = os.path.join(FILES, uid)
     # TODO: Check that access rights
@@ -253,6 +254,7 @@ def download_item(uid):
 
 
 @app.route('/download/<uid>/xml2json')
+@requires_auth("sources")
 def download_xml_as_json(uid):
     # TODO: Check that access rights
     with load(uid) as f:
@@ -261,12 +263,15 @@ def download_xml_as_json(uid):
 
 
 @app.route('/audio/<item_id>/<float:begin>-<float:end>')
+@requires_auth("sources")
 def get_audio(item_id, begin, end):
     size = end - begin
     return cut.cut(os.path.join(FILES, item_id), begin, size)
 
 
+"""
 @app.route('/run/<item_id>/align')
+@requires_auth("sources")
 def run_transcript(item_id):
     items = app.data.driver.db["entryitems"]
     transcript_item = items.find_one({"_id": ObjectId(item_id)})
@@ -295,7 +300,7 @@ def run_transcript(item_id):
         f.write(et.tostring(transcript))
 
     return str("Ok")
-
+"""
 
 exts = {
     ".doc": "doc",
@@ -360,6 +365,7 @@ def generate_labelfile(transcript_id):
 
 
 @app.route('/sources/<source_id>/autodetect')
+@requires_auth("sources")
 def source_autodetect(source_id):
     sources_db = app.data.driver.db["sources"]
     source = sources_db.find_one({"_id": ObjectId(source_id)})
@@ -389,6 +395,7 @@ def source_autodetect(source_id):
 
 
 @app.route('/export', methods=['POST'])
+@requires_auth("sources")
 def export():
     # TODO: This should be loaded from DB
     settings = {
@@ -448,6 +455,7 @@ def export():
 
 
 @app.route('/upload/<source_id>', methods=['GET', 'POST'])
+@requires_auth("sources")
 def upload_entry_item(source_id):
     sources_db = app.data.driver.db["sources"]
     source_id = ObjectId(source_id)
@@ -477,6 +485,7 @@ def upload_entry_item(source_id):
 
 
 @app.route('/create-at/<source_id>', methods=['GET', 'POST'])
+@requires_auth("sources")
 def create_at(source_id):
     sources_db = app.data.driver.db["sources"]
     source_id = ObjectId(source_id)
