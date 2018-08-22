@@ -3,6 +3,7 @@ import { Button, FormControl, FormGroup, ControlLabel, ListGroup, ListGroupItem,
 
 import update from 'react-addons-update';
 import { create_label, fetch_labels, create_labelcategory, fetch_labelcategories } from '../services/labels.js';
+import MapView, { MyMarker } from './MapView';
 
 
 let LabelItem = (props) => {
@@ -183,7 +184,8 @@ class LabelTree extends Component {
         super(props);
         this.state = {
             showNewTopLevel: false,
-            nodes: []
+            nodes: [],
+            labels: [],
         };
     }
 
@@ -210,12 +212,16 @@ class LabelTree extends Component {
             for (let item of data[1]._items) {
                 map.get(item.parent).labels.push(item);
             }
-            this.setState(update(this.state, {nodes: {$set: nodes}}));
+            this.setState({...this.state, nodes, labels: data[1]._items});
         });
     }
 
     render() {
         return(<div><Button onClick={() => this.setState(update(this.state, {showNewTopLevel: {$set: true}}))}>New top level category</Button>
+            { this.props.showMap &&
+            <MapView viewport={{center: [50.0884, 14.40402], zoom: 16}}>
+                {this.state.labels.filter(label => label.location).map((label, i) => <MyMarker key={i} location={label.location}>{label.name}</MyMarker> )}
+            </MapView> }
             <Collapse in={this.state.showNewTopLevel}>
             <div><CategoryEditor onSubmit={(c) => this.onNewTopLevel(c)} onCancel={() => this.setState(update(this.state, {showNewTopLevel: {$set: false}}))}/></div>
             </Collapse>

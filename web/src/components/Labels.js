@@ -4,14 +4,20 @@ import { Table, Button, FormControl, FormGroup, ControlLabel, Modal, Label} from
 import update from 'react-addons-update';
 
 import LabelTree from './LabelTree';
-import { update_label, fetch_label, fetch_labelinstances_of_label, remove_label } from '../services/labels.js';
+import { update_label, fetch_labelinstances_of_label, remove_label } from '../services/labels.js';
+import MapView from './MapView';
+import {LocationSelectDialog, MyMarker} from './MapView';
 
 
 class LabelDialog extends Component {
 
     constructor(props) {
         super(props);
-        this.state = {new_lemma: "", label: props.label, items_and_counts: null, reload_on_close: false}
+        this.state = {new_lemma: "",
+                      label: props.label,
+                      location_select_dialog: false,
+                      items_and_counts: null,
+                      reload_on_close: false}
         fetch_labelinstances_of_label(props.label._id).then((data) => {
             let m = new Map();
             for (let instance of data._items) {
@@ -35,21 +41,21 @@ class LabelDialog extends Component {
     onNewLemma(e) {
         e.preventDefault();
         let label = this.state.label;
-        let lemmas;
         if (!label.lemmas) {
-            lemmas = [this.state.new_lemma];
+            label.lemmas = [this.state.new_lemma];
         } else {
-            lemmas = update(label.lemmas, {$push: [this.state.new_lemma]});
+            label.lemmas.push(this.state.new_lemma);
         }
+        this.setState({...this.state, new_lemma: ""});
+    }
 
-        update_label(label, {lemmas: lemmas}).then(() => {
-            fetch_label(this.props.label._id).then((data) => {
-                this.setState(update(this.state,
-                    {new_lemma: {$set: ""},
-                     label: {$set: data},
-                     reload_on_close: {$set: true},
-                    }));
-            })
+    update = () => {
+        update_label(this.state.label,
+                {lemmas: this.state.label.lemmas,
+                 name: this.state.label.name,
+                 location: this.state.label.location,
+                }).then(() => {
+            this.close();
         });
     }
 
@@ -62,25 +68,33 @@ class LabelDialog extends Component {
     }
 
     onLemmaRemove(index) {
-        let lemmas = this.state.label.lemmas.slice();
-        lemmas.splice(index, 1);
-        update_label(this.state.label, {lemmas: lemmas}).then(() => {
-            fetch_label(this.props.label._id).then((data) => {
-                this.setState(update(this.state, {reload_on_close: {$set: true}, label: {$set: data}}));
-            })
-        });
+        let state = {...this.state};
+        state.label.lemmas.splice(index, 1);
+        this.setState(state);
     }
 
     onRemoveLabel() {
-        remove_label(this.props.label).then(() => {
+        remove_label(this.state.label).then(() => {
             this.props.closeDialog(true);
         });
+    }
+
+    onLocationClose = (update, location) => {
+        let state = {...this.state, location_select_dialog: false};
+        if (update) {
+            state.label.location = location;
+        }
+        this.setState(state);
+    }
+
+    close = () => {
+        this.props.closeDialog(true);
     }
 
     render() {
         let props = this.props;
         return (
-            <Modal show={props.label !== null} onHide={() => {props.closeDialog(this.reload_on_close);}}>
+            <Modal show={props.label !== null} onHide={this.close}>
             <Modal.Header closeButton>
                 <Modal.Title>{props.label.name}</Modal.Title>
             </Modal.Header>
@@ -97,14 +111,25 @@ class LabelDialog extends Component {
                         </tbody>
                     </Table>
                     }
+
                     <div>
-                    <p>
-                    <Button bsStyle="primary" type="submit" onClick={(e) => this.onRemoveLabel(e)}>Remove label</Button>
-                    </p>
+                        <LocationSelectDialog show={this.state.location_select_dialog}
+                                              location={this.state.label.location}
+                                              onClose={this.onLocationClose}/>
+                        <Button onClick={() => this.setState({...this.state, location_select_dialog: true})}>Set location</Button>
+                        {this.state.label.location &&
+                         <MapView location={this.state.label.location}>
+                            <MyMarker location={this.state.label.location}/>
+                         </MapView>
+                        }
+                    </div>
+
+                    <div>
                     {this.state.label.lemmas && this.state.label.lemmas.map((lemma, i) =>
                         <span key={i}><Label style={{cursor: "pointer"}} onClick={(e)=>this.onLemmaRemove(i)}>{lemma}</Label> </span>
                     )}
                     </div>
+
                     <form onSubmit={(e) => this.onSubmit(e)}>
                     <FormGroup validationState={this.validationState}>
                     <ControlLabel>New lemma</ControlLabel>
@@ -116,9 +141,17 @@ class LabelDialog extends Component {
                     />
                     <FormControl.Feedback />
                     </FormGroup>
-                    <Button bsStyle="primary" type="submit" disabled={this.validationState !== "success"} onClick={(e) => this.onNewLemma(e)}>Add lemma</Button>                </form>
+                    <Button type="submit" disabled={this.validationState !== "success"} onClick={(e) => this.onNewLemma(e)}>Add lemma</Button>
+                    </form>
+                    <p>
+                    </p>
+
                 </div>}
             </Modal.Body>
+            <Modal.Footer>
+                    <Button onClick={(e) => this.onRemoveLabel(e)}>Remove</Button>
+                    <Button type="submit" onClick={this.update}>Save</Button>
+            </Modal.Footer>
         </Modal>);
     }
 }
@@ -141,7 +174,7 @@ class Labels extends Component {
     render() {
         return(<div>
             <h1>Labels</h1>
-            <LabelTree ref={(r) => this.tree = r} onLabelSelect={(label) => this.labelSelect(label)}/>
+            <LabelTree showMap={true} ref={(r) => this.tree = r} onLabelSelect={(label) => this.labelSelect(label)}/>
             { this.state.label && <LabelDialog label={this.state.label} closeDialog={(reload) => this.closeDialog(reload)}/>}
             </div>)
     }

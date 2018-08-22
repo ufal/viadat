@@ -55,6 +55,10 @@ simple_string = {
     "type": "string"
 }
 
+simple_number = {
+    "type": "number"
+}
+
 required_int = {
     "type": "integer",
     "required": True,
@@ -157,6 +161,7 @@ labelcategory_schema = {
 labels_schema = {
     'name': required_string,
     'parent': ref("labelcategories", embeddable=True, required=True),
+    'location': {"type": "point", "nullable": True},
     'lemmas': list_type(simple_string),
 }
 
