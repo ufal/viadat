@@ -8,6 +8,9 @@ import { update_label, fetch_labelinstances_of_label, remove_label } from '../se
 import MapView from './MapView';
 import {LocationSelectDialog, MyMarker} from './MapView';
 
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import moment from 'moment';
 
 class LabelDialog extends Component {
 
@@ -50,10 +53,13 @@ class LabelDialog extends Component {
     }
 
     update = () => {
-        update_label(this.state.label,
-                {lemmas: this.state.label.lemmas,
-                 name: this.state.label.name,
-                 location: this.state.label.location,
+        let label = this.state.label;
+        update_label(label,
+                {lemmas: label.lemmas,
+                 name: label.name,
+                 location: label.location,
+                 from_date: label.from_date,
+                 to_date: label.to_date
                 }).then(() => {
             this.close();
         });
@@ -91,6 +97,16 @@ class LabelDialog extends Component {
         this.props.closeDialog(true);
     }
 
+    onFromDate = (date) => {
+        let d = new Date(date);
+        this.setState({...this.state, label: {...this.state.label, from_date: d.toUTCString()}});
+    }
+
+    onToDate = (date) => {
+        let d = new Date(date);
+        this.setState({...this.state, label: {...this.state.label, to_date: d.toUTCString()}});
+    }
+
     render() {
         let props = this.props;
         return (
@@ -112,16 +128,22 @@ class LabelDialog extends Component {
                     </Table>
                     }
 
-                    <div>
+                    {
+                    <div style={{paddingTop: "1em", paddingBottom: "1em"}}>
                         <LocationSelectDialog show={this.state.location_select_dialog}
                                               location={this.state.label.location}
                                               onClose={this.onLocationClose}/>
                         <Button onClick={() => this.setState({...this.state, location_select_dialog: true})}>Set location</Button>
-                        {this.state.label.location &&
+                        {/*this.state.label.location &&
                          <MapView location={this.state.label.location}>
                             <MyMarker location={this.state.label.location}/>
                          </MapView>
-                        }
+                        */}
+                    </div>}
+
+                    <div style={{paddingTop: "1em", paddingBottom: "1em"}}>
+                        From <DatePicker selected={this.state.label.from_date && moment(this.state.label.from_date)} onChange={this.onFromDate}/>
+                        To <DatePicker selected={this.state.label.to_date && moment(this.state.label.to_date)} onChange={this.onToDate}/>
                     </div>
 
                     <div>

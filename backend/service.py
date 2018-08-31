@@ -162,6 +162,8 @@ labels_schema = {
     'name': required_string,
     'parent': ref("labelcategories", embeddable=True, required=True),
     'location': {"type": "point", "nullable": True},
+    'from_date': {"type": "datetime", "nullable": True},
+    'to_date': {"type": "datetime", "nullable": True},
     'lemmas': list_type(simple_string),
 }
 
