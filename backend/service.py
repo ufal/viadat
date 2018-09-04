@@ -249,10 +249,9 @@ def lemmatize():
 
 
 @app.route('/download/<uid>')
-@requires_auth("sources")
+#@requires_auth("sources")
 def download_item(uid):
     filename = os.path.join(FILES, uid)
-    # TODO: Check that access rights
     if "begin" in request.args and "end" in request.args:
         begin = float(request.arg.get("begin"))
         end = float(request.arg.get("end"))
@@ -260,10 +259,15 @@ def download_item(uid):
     return app.send_static_file(uid)
 
 
+@app.route('/download/<uid>/<filename>')
+#@requires_auth("sources")
+def download_item2(uid, filename):
+    return app.send_static_file(uid)
+
+
 @app.route('/download/<uid>/xml2json')
 @requires_auth("sources")
 def download_xml_as_json(uid):
-    # TODO: Check that access rights
     with load(uid) as f:
         xml = et.parse(f)
     return json.dumps(to_json(xml.getroot()))
@@ -275,6 +279,10 @@ def get_audio(item_id, begin, end):
     size = end - begin
     return cut.cut(os.path.join(FILES, item_id), begin, size)
 
+
+@app.route('/transcript-download/<transcript_id>')
+def transcript_download(transcript_id):
+    pass
 
 """
 @app.route('/run/<item_id>/align')

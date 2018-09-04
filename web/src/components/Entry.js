@@ -7,6 +7,11 @@ import { Metadata } from './Metadata'
 import {update_source, autodetect_source_metadata, update_group, fetch_entry, fetch_groups, upload_source_files, create_source, fetch_sources, fetch_transcripts, create_transcription} from '../services/entries';
 import update from 'react-addons-update';
 
+import { SERVER_URL } from '../config.js';
+
+const SourceDownloadLink = props =>
+    <a href={SERVER_URL + "download/" + props.file.uuid + "/" + props.file.name}>{props.children}</a>
+
 
 class SourceItem extends Component {
     constructor(props) {
@@ -67,7 +72,7 @@ class SourceItem extends Component {
             {   this.props.source.files.length !== 0 &&
                 <Table responsive>
                 <thead>
-                <tr><th>Name</th><th>Type</th><th>Size</th></tr>
+                <tr><th>Name</th><th>Type</th><th>Size</th><th>Download</th></tr>
                 </thead>
                 <tbody>
                 {
@@ -76,6 +81,7 @@ class SourceItem extends Component {
                                 <td><Glyphicon glyph="file" /> {f.name}</td>
                                 <td>{f.kind}</td>
                                 <td>{(f.size / (1024 * 1024)).toFixed(2)}MB</td>
+                                <td><SourceDownloadLink file={f}>Download</SourceDownloadLink></td>
                                 </tr>);
                     })
                 }
@@ -108,13 +114,14 @@ class GroupItem extends Component {
             {   this.props.group.transcripts.length !== 0 &&
                 <Table responsive>
                 <thead>
-                <tr><th>Name</th></tr>
+                <tr><th>Name</th><th>Download</th></tr>
                 </thead>
                 <tbody>
                 {
                     this.props.group.transcripts.map((f, i) => {
                         return (<tr key={i}>
                                 <td><Glyphicon glyph="cog" /> <Link to={{pathname: "/item/" + f._id}}>{f.name}</Link></td>
+                                <td>Download</td>
                                 </tr>);
                     })
                 }
