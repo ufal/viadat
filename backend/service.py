@@ -2,7 +2,7 @@ from eve import Eve
 from .fs.filestore import store, filename, load, filesize
 from .audio import cut
 from flask_cors import CORS
-from flask import jsonify, abort
+from flask import jsonify, abort, Response
 import tempfile
 import os
 import json
@@ -280,10 +280,10 @@ def get_audio(item_id, begin, end):
     return cut.cut(os.path.join(FILES, item_id), begin, size)
 
 
-@app.route('/transcript-download/<transcript_id>')
-def transcript_download(transcript_id):
-    pass
-
+@app.route('/transcript-download/<transcript_id>/<filename>')
+def transcript_download(transcript_id, filename):
+    data = generate_labelfile(transcript_id)
+    return Response(data, mimetype="text/xml")
 """
 @app.route('/run/<item_id>/align')
 @requires_auth("sources")
@@ -444,7 +444,7 @@ def export():
 
         logging.info("Exported %s", metadata["dc_title"])
 
-    # Export sources
+    # Export transcipts
 
     groups_db = app.data.driver.db["groups"]
     transcripts_db = app.data.driver.db["transcripts"]

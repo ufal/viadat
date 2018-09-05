@@ -9,8 +9,12 @@ import update from 'react-addons-update';
 
 import { SERVER_URL } from '../config.js';
 
-const SourceDownloadLink = props =>
-    <a href={SERVER_URL + "download/" + props.file.uuid + "/" + props.file.name}>{props.children}</a>
+const FileDownloadLink = props =>
+    <a href={SERVER_URL + "download/" + props.file.uuid + "/" + props.file.name + (props.suffix || "")}>{props.children}</a>
+
+
+const LabelDownloadLink = props =>
+    <a href={SERVER_URL + "transcript-download/" + props.id + "/" + props.name}>{props.children}</a>
 
 
 class SourceItem extends Component {
@@ -81,7 +85,7 @@ class SourceItem extends Component {
                                 <td><Glyphicon glyph="file" /> {f.name}</td>
                                 <td>{f.kind}</td>
                                 <td>{(f.size / (1024 * 1024)).toFixed(2)}MB</td>
-                                <td><SourceDownloadLink file={f}>Download</SourceDownloadLink></td>
+                                <td><FileDownloadLink file={f}>Download</FileDownloadLink></td>
                                 </tr>);
                     })
                 }
@@ -121,7 +125,8 @@ class GroupItem extends Component {
                     this.props.group.transcripts.map((f, i) => {
                         return (<tr key={i}>
                                 <td><Glyphicon glyph="cog" /> <Link to={{pathname: "/item/" + f._id}}>{f.name}</Link></td>
-                                <td>Download</td>
+                                <td><FileDownloadLink file={f} suffix=".xml">Transcript</FileDownloadLink>{" / "}
+                                    <LabelDownloadLink id={f._id} name={f.name + ".labels.xml"}>Labels</LabelDownloadLink></td>
                                 </tr>);
                     })
                 }
