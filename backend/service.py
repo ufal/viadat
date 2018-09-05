@@ -274,7 +274,7 @@ def download_xml_as_json(uid):
 
 
 @app.route('/audio/<item_id>/<float:begin>-<float:end>')
-@requires_auth("sources")
+#@requires_auth("sources")
 def get_audio(item_id, begin, end):
     size = end - begin
     return cut.cut(os.path.join(FILES, item_id), begin, size)
