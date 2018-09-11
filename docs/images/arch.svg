@@ -24,7 +24,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.98994949"
-     inkscape:cx="202.92893"
+     inkscape:cx="218.6845"
      inkscape:cy="301.17767"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -327,7 +327,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -381,18 +381,18 @@
        id="rect1933" />
     <text
        id="text1939"
-       y="313.33102"
+       y="315.35132"
        x="304.13782"
        style="font-style:normal;font-weight:normal;font-size:16.21130943px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.40528271"
        xml:space="preserve"><tspan
          style="stroke-width:0.40528271"
-         y="313.33102"
+         y="315.35132"
          x="304.13782"
          id="tspan1935"
          sodipodi:role="line">Viadat</tspan><tspan
          style="stroke-width:0.40528271"
          id="tspan1937"
-         y="333.59515"
+         y="335.61545"
          x="304.13782"
          sodipodi:role="line">web frontend</tspan></text>
     <path
@@ -551,58 +551,47 @@
        style="fill:none;stroke:#000000;stroke-width:1.55769408;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#marker899-62);marker-end:url(#marker903-1)" />
     <path
        style="fill:none;stroke:#000000;stroke-width:1.55769408;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#marker970);marker-end:url(#marker974)"
-       d="m 608.18003,327.3821 69.94245,9.99178"
+       d="m 604.13942,322.33134 73.98306,15.04254"
        id="path966"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cc" />
     <rect
        style="fill:#d8d8d8;fill-opacity:1;stroke:#000000;stroke-width:3.11577749;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="rect976"
-       width="199.83557"
-       height="62.44865"
-       x="637.32269"
+       width="169.53093"
+       height="62.448639"
+       x="667.62726"
        y="384.83487"
        rx="2.1409349"
        ry="2.1409349" />
     <text
        id="text844-0"
        y="413.20468"
-       x="713.70074"
+       x="756.12714"
        style="font-style:normal;font-weight:normal;font-size:16.21130943px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.40528271"
        xml:space="preserve"><tspan
          style="stroke-width:0.40528271"
          id="tspan842-9"
          y="413.20468"
-         x="713.70074"
+         x="756.12714"
          sodipodi:role="line">Processing tools</tspan></text>
     <path
        sodipodi:nodetypes="cc"
        inkscape:connector-curvature="0"
        id="path1000"
-       d="m 582.36793,348.19831 54.95482,36.63654"
+       d="m 602.73676,336.39067 64.8905,48.4442"
        style="fill:none;stroke:#000000;stroke-width:1.55769408;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#marker1004);marker-end:url(#marker1008)" />
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:16.21130943px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.40528271"
-       x="713.70074"
-       y="413.20468"
-       id="text1012"><tspan
-         sodipodi:role="line"
-         x="713.70074"
-         y="413.20468"
-         id="tspan1010"
-         style="stroke-width:0.40528271">Processing tools</tspan></text>
     <text
        id="text844-3"
        y="433.25043"
-       x="722.41541"
+       x="749.68951"
        style="font-style:normal;font-weight:normal;font-size:11.90943432px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.29773581"
        xml:space="preserve"><tspan
          style="font-style:italic;stroke-width:0.29773581"
          id="tspan842-6"
          y="433.25043"
-         x="722.41541"
-         sodipodi:role="line">Aeneos, OpenOffice, sox</tspan></text>
+         x="749.68951"
+         sodipodi:role="line">Aeneas, LibreOffice, sox</tspan></text>
     <rect
        id="rect1925-3-0"
        width="151.88641"
@@ -631,5 +620,38 @@
        id="path932-9"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cc" />
+    <text
+       id="text2511-3"
+       y="252.34775"
+       x="555.77875"
+       style="font-style:normal;font-weight:normal;font-size:16.21130943px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.40528271"
+       xml:space="preserve"><tspan
+         style="stroke-width:0.40528271"
+         id="tspan2509-6"
+         y="252.34775"
+         x="555.77875"
+         sodipodi:role="line">REST</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:16.21130943px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.40528271"
+       x="554.76862"
+       y="427.10413"
+       id="text1022"><tspan
+         sodipodi:role="line"
+         x="554.76862"
+         y="427.10413"
+         id="tspan1020"
+         style="stroke-width:0.40528271">REST</tspan></text>
+    <text
+       id="text1026"
+       y="250.32742"
+       x="330.51474"
+       style="font-style:normal;font-weight:normal;font-size:16.21130943px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.40528271"
+       xml:space="preserve"><tspan
+         style="stroke-width:0.40528271"
+         id="tspan1024"
+         y="250.32742"
+         x="330.51474"
+         sodipodi:role="line">REST</tspan></text>
   </g>
 </svg>
