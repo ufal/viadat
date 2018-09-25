@@ -19,16 +19,16 @@ document processing features
 
 - *Processing tools* -- Viadat utilizies several external tools in processing
   documents:
-  - Aeneas for forced alignment
-  - LibreOffice for converting document formats
-  - sox for audio manipulation
+    * Aeneas for forced alignment
+    * LibreOffice for converting document formats
+    * sox for audio manipulation
 
 Viadat also communicates with external services:
 
 - *Morphodita* -- http://ufal.mff.cuni.cz/morphodita UFAL service for
   morphological analysis
 
-- *Repository* -- 
+- *Repository* --
 
 - *OpenStreetMaps* -- OpenStreetMap for displaying geographic information to users
 
@@ -45,14 +45,35 @@ The following figure shows the main entities occuring in Viadat:
 - *Source* -- A primary sources that are upload by user and is stored untouched
   within the system. Each Source may one or more files.
 
-- *Transcript* -- A transcript managed by viadat. It is generated from Source
-files. They are may be enriched by information from force alignment
+- *Transcript* -- A transcript managed by Viadat. It is generated from Source
+  files. They are may be enriched by information from force alignment and may
+  contains label instances.
 
-- *Label category* -- 
+- *Label category* -- Labels are organized into categories that formes a tree structure.
+  A label category is a node in this tree. A category may contains another categories or labels.
 
-- *Label* --
+- *Label* -- Labels are entities that are used for anotating transcripts.
+  Usually, it represents a persons, disciplnes, places, and historical events.
+  Label have name and may be connected with geographical point or set aliases.
 
 - *Label instance* --
+  Label instance is actual occurence of label in transcript.
 
 
 ## Source code structure
+
+- *backend/* -- Python backend service
+
+- *backend/audio* -- Processing audio files
+
+- *backend/text* -- Processing text documents
+
+- *web/* -- React frontend
+
+- *tests/* -- Python tests
+
+- *docs/* -- Documentation
+
+- *files/* -- Default location where to store files
+
+- *tools/* -- Helpler utilities
