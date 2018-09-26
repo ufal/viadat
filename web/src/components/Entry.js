@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Upload } from './Upload';
 import { Metadata } from './Metadata'
 
-import {update_source, autodetect_source_metadata, update_group, fetch_entry, fetch_groups, upload_source_files, create_source, fetch_sources, fetch_transcripts, create_transcription} from '../services/entries';
+import {update_source, autodetect_source_metadata, update_group, fetch_entry, fetch_groups, upload_source_files, upload_at_files, create_source, fetch_sources, fetch_transcripts, create_transcription} from '../services/entries';
 import update from 'react-addons-update';
 
 import { SERVER_URL } from '../config.js';
@@ -144,7 +144,7 @@ class Entry extends Component {
 
     constructor(props) {
         super(props);
-        this.state = {entry: null, sources: [], groups: [], showUploadDialog: false};
+        this.state = {entry: null, sources: [], groups: [], showAtUploadDialog: false};
     }
 
     componentDidMount() {
@@ -188,6 +188,13 @@ class Entry extends Component {
         })
     }
 
+    uploadAtFiles(files) {
+        return upload_at_files(this.state.entry._id, files).then(() => {
+            this.setState(update(this.state, {showAtUploadDialog: {$set: false}}));
+            this.reload();
+        })
+    }
+
     render() {
         return (
                 <div>
@@ -203,6 +210,13 @@ class Entry extends Component {
                         </ListGroup>
 
                         <h2>Annotated Transcripts</h2>
+                        <p>
+                        <Button onClick={() => this.setState(update(this.state, {showAtUploadDialog: {$set: true}}))}>Upload AT</Button>
+                        </p>
+                        <Upload
+                            show={this.state.showAtUploadDialog}
+                            onUpload={(files) => this.uploadAtFiles(files)}
+                            onClose={() => this.setState(update(this.state, {showAtUploadDialog: {$set: false}}))}/>
                         <ListGroup>
                             {this.state.groups.map((s) => <ListGroupItem key={s._id}><GroupItem group={s} entry={this}/></ListGroupItem>)}
                         </ListGroup>

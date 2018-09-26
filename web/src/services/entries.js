@@ -22,6 +22,15 @@ export function upload_source_files(source_id, files) {
   return call_raw_service("upload/" + source_id, data);
 }
 
+export function upload_at_files(entry_id, files) {
+  var data = new FormData();
+  for(let f of files) {
+    data.append('file', f);
+  }
+  return call_raw_service("upload-at/" + entry_id, data);
+}
+
+
 export function fetch_sources(entry_id) {
   return call_service_json("sources?where={\"entry\": \"" + entry_id + "\"}");
 }

@@ -1,5 +1,5 @@
 from eve import Eve
-from .fs.filestore import store, filename, load, filesize
+from .fs.filestore import store, filename, load, filesize, compute_hash
 from .audio import cut
 from flask_cors import CORS
 from flask import jsonify, abort, Response
@@ -18,7 +18,7 @@ from eve.auth import TokenAuth, requires_auth
 from .text.tools import load_transcript
 from .text.analyze import analyze_transcript
 
-
+import io
 import uuid
 import mimetypes
 
@@ -92,6 +92,7 @@ sources_schema = {
             'schema': {
                 'name': required_string,
                 'size': required_int,
+                'hash': required_string,
             }
         }
     }
@@ -235,7 +236,6 @@ CORS(app)
 def on_delete_label(item):
     instances = app.data.driver.db["labelinstances"]
     instances.remove({"label": item["_id"]})
-    print("!!! DELETE", item)
 
 
 app.on_delete_item_labels += on_delete_label
@@ -440,7 +440,8 @@ def export():
             mime = mt.guess_type(f["name"])[0]
             remote_item.add_bitstream(filename(f["uuid"]), mime, f["name"])
         sources_db.update({"_id": source["_id"]},
-                          {"$set": {"metadata.status": "p"}})
+                          {"$set": {"metadata.status": "p",
+                                    "metadata.handle": remote_item.handle}})
 
         logging.info("Exported %s", metadata["dc_title"])
 
@@ -455,7 +456,6 @@ def export():
         logging.info("Exporting group %s", metadata["dc_title"])
         item = metadata_to_repo_item(metadata)
         remote_item = collection.create_item(item)
-
         for t in transcripts_db.find({"group": group["_id"]}):
             remote_item.add_bitstream(
                 filename(t["uuid"]), "application/xml", t["name"] + ".xml")
@@ -491,12 +491,125 @@ def upload_entry_item(source_id):
                 "kind": exts.get(ext),
                 "file_type": ext,
                 "uuid": uid,
-                "size": filesize(uid)
+                "size": filesize(uid),
+                "hash": compute_hash(uid)
             }
             sources_db.update({"_id": source_id},
                               {"$push": {"files": fileitem}})
 
         return "{}"
+
+
+def find_or_create(db, data):
+    item = db.find_one(data)
+    if item is None:
+        item = db.insert_one(data).inserted_id
+    else:
+        return item["_id"]
+
+
+def find_or_create_category(full_category_name):
+    category_id = None
+    categories_db = app.data.driver.db["labelcategories"]
+    for name in full_category_name.split("//"):
+        category_id = find_or_create(
+            categories_db, {"name": name, "parent": category_id})
+    return category_id
+
+
+@app.route('/upload-at/<entry_id>', methods=['GET', 'POST'])
+@requires_auth("sources")
+def upload_at(entry_id):
+    entry_db = app.data.driver.db["entries"]
+    source_db = app.data.driver.db["sources"]
+    group_db = app.data.driver.db["groups"]
+    ts_db = app.data.driver.db["transcripts"]
+    lemma_db = app.data.driver.db["lemmas"]
+    labels_db = app.data.driver.db["labels"]
+    labelinstances_db = app.data.driver.db["labelinstances"]
+
+    entry_id = ObjectId(entry_id)
+    entry = entry_db.find_one({"_id": entry_id})
+    assert entry  # TODO 404
+
+    metadata = {}
+    metadata["dc_title"] = "Uploaded AT"
+
+    g_item = {
+        "entry": entry_id,
+        "metadata": metadata,
+    }
+    group_id = group_db.insert_one(g_item).inserted_id
+
+    if request.method == 'POST':
+        files = request.files.getlist("file")
+        for f in files:
+            if not f.filename.endswith(".xml"):
+                return jsonify("ERROR: Invalid file: {}".format(f.filename))
+
+        at_files = [f for f in files if not f.filename.endswith(".labels.xml")]
+
+        for upload_file in at_files:
+            uid = str(uuid.uuid4())
+
+            with store(uid) as fout:
+                upload_file.save(fout)
+
+            with load(uid) as f:
+                xml = et.parse(f)
+
+            transcript = xml.getroot()
+            audio = transcript.find("head").find("audio")
+
+            source = source_db.find_one({"files.hash": audio.get("hash")})
+            for sf in source["files"]:
+                if sf["hash"] == audio.get("hash"):
+                    break
+
+            t_item = {
+                "name": upload_file.filename,
+                "group": group_id,
+                "uuid": uid,
+                "audio": {
+                    "source": source["_id"],
+                    "uuid": sf["uuid"]
+                }
+            }
+            transcript_id = ts_db.insert_one(t_item).inserted_id
+            lemmas = set(lemma.get("value") for lemma in transcript.iter("lemma"))
+            for lemma in lemmas:
+                lemma_db.update({"value": lemma},
+                                {"$push": {"transcripts": transcript_id}}, True)
+
+            label_filename = upload_file.filename[:-4] + ".labels.xml"
+            label_files = [fl for fl in files if fl.filename == label_filename]
+            if not label_files:
+                continue
+
+            label_file = label_files[0]
+            b = io.BytesIO()
+            label_file.save(b)
+            b.seek(0)
+            label_root = et.parse(b).getroot()
+
+            for label_data in label_root.findall("label"):
+                logging.info("Importing label %s in %s",
+                             label_data.get("name"), label_data.get("category"))
+                category_id = find_or_create_category(label_data.get("category"))
+                label_id = find_or_create(
+                    labels_db, {"name": label_data.get("name"),
+                                "parent": category_id})
+                for instance_data in label_data.findall("instance"):
+                    instance = {
+                        "transcript": transcript_id,
+                        "label": label_id,
+                        "paragraph": instance_data.get("p"),
+                        "from": instance_data.get("from"),
+                        "to": instance_data.get("to"),
+                    }
+                    labelinstances_db.insert_one(instance)
+
+    return jsonify("Ok")
 
 
 @app.route('/create-at/<source_id>', methods=['GET', 'POST'])
@@ -512,7 +625,6 @@ def create_at(source_id):
 
     assert len(docs) == len(audios)
 
-    # TODO: Better assigning audio to docs
     docs.sort(key=lambda f: f["name"])
     audios.sort(key=lambda f: f["name"])
 
@@ -522,6 +634,11 @@ def create_at(source_id):
         transcript = analyze_transcript(transcript)
         transcript = force_alignment(
             transcript, filename(audio["uuid"]), "mp3")
+
+        element = et.Element("audio")
+        element.set("hash", audio["hash"])
+        element.set("handle", source["metadata"]["handle"])
+        transcript.find("head").append(element)
         transcripts.append(transcript)
 
     metadata = source["metadata"]

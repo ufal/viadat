@@ -65,6 +65,8 @@ class MetadataDialog extends Component {
             } else {
                 this.setState({...this.state, metadata: m, autodetecting: false, message: "Done"});
             }
+        }, e => {
+            this.setState({...this.state, autodetecting: false, message: "Autodetection failed"});
         })
     }
 
