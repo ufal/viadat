@@ -8,6 +8,7 @@ import { soundManager } from 'soundmanager2';
 import LabelTree from './LabelTree.js';
 import { create_labelinstance, delete_labelinstance, fetch_labels } from '../services/labels.js';
 import { fetch_document, fetch_labelinstance_map } from '../models/document.js';
+import { Link } from 'react-router-dom';
 
 function formatTime(seconds) {
     let secs = Math.floor(seconds % 60);

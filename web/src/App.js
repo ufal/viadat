@@ -14,6 +14,7 @@ import Search from './components/Search.js'
 import Labels from './components/Labels.js'
 import Login from './components/Login.js'
 import Export from './components/Export.js'
+import Stats from './components/Stats.js'
 
 
 const ProtectedRoute = ({ component: Component, ...rest }) => (
@@ -94,6 +95,7 @@ class App extends Component {
           <ProtectedRoute path="/labels" component={Labels} />
           <ProtectedRoute path="/entry/:id" component={Entry} />
           <ProtectedRoute path="/item/:id" component={Item} />
+          <ProtectedRoute path="/stats/:id" component={Stats} />
           <ProtectedRoute path="/entries" component={Entries} />
           <ProtectedRoute path="/export" component={Export} />
           <ProtectedRoute exact path="/" component={Home} />

@@ -118,13 +118,16 @@ class GroupItem extends Component {
             {   this.props.group.transcripts.length !== 0 &&
                 <Table responsive>
                 <thead>
-                <tr><th>Name</th><th>Download</th></tr>
+                <tr><th>Name</th><th>Statistics</th><th>Download</th></tr>
                 </thead>
                 <tbody>
                 {
                     this.props.group.transcripts.map((f, i) => {
                         return (<tr key={i}>
                                 <td><Glyphicon glyph="cog" /> <Link to={{pathname: "/item/" + f._id}}>{f.name}</Link></td>
+                                <td>
+                                    <Link to={"/stats/" + f._id}>Statistics</Link>
+                                </td>
                                 <td><FileDownloadLink file={f} suffix=".xml">Transcript</FileDownloadLink>{" / "}
                                     <LabelDownloadLink id={f._id} name={f.name + ".labels.xml"}>Labels</LabelDownloadLink></td>
                                 </tr>);
