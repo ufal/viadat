@@ -511,7 +511,7 @@ def find_or_create(db, data):
 def find_or_create_category(full_category_name):
     category_id = None
     categories_db = app.data.driver.db["labelcategories"]
-    for name in full_category_name.split("//"):
+    for name in full_category_name.split('/'):
         category_id = find_or_create(
             categories_db, {"name": name, "parent": category_id})
     return category_id

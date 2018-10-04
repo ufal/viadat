@@ -1,9 +1,11 @@
 import React, { Component } from 'react';
-import { Button, FormControl, FormGroup, ControlLabel, ListGroup, ListGroupItem, Collapse, Glyphicon, MenuItem, DropdownButton, Panel} from 'react-bootstrap';
+import { Checkbox, Button, FormControl, FormGroup, ControlLabel, ListGroup, ListGroupItem, Collapse, Glyphicon, MenuItem, DropdownButton, Panel} from 'react-bootstrap';
 
 import update from 'react-addons-update';
 import { create_label, fetch_labels, create_labelcategory, fetch_labelcategories } from '../services/labels.js';
 import MapView, { MyMarker } from './MapView';
+import DatePicker from 'react-datepicker';
+import moment from 'moment';
 
 
 let LabelItem = (props) => {
@@ -61,6 +63,63 @@ class CategoryEditor extends Component {
 
 }
 
+class DateFilter extends Component {
+    constructor(props) {
+        super(props)
+        this.state = {
+            enable: false,
+            begin: undefined,
+            end: undefined
+        }
+    }
+
+    toggleEnable = (event) => {
+        console.log(event);
+        this.update({...this.state, enable: !this.state.enable});
+    }
+
+    onFromDate = (date, date2) => {
+        this.update({...this.state, begin: date});
+    }
+
+    onToDate = (date) => {
+        this.update({...this.state, end: date});
+    }
+
+    update(state) {
+        let begin, end;
+        if (!state.enable) {
+            begin = null;
+            end = null
+        } else {
+            begin = state.begin;
+            end = state.end;
+        }
+        this.props.onChange({
+            begin: begin,
+            end: end
+        })
+        this.setState(state);
+    }
+
+    render() {
+        return (
+        <FormGroup controlId="status">
+          <ControlLabel></ControlLabel>
+          <Button onClick={this.toggleEnable} active={this.state.enable}>
+            Date filter</Button>
+            {this.state.enable &&
+                <div>
+                    From:
+                    <DatePicker selected={this.state.begin} onChange={this.onFromDate}/>
+                    To:
+                    <DatePicker selected={this.state.end} onChange={this.onToDate}/>
+                </div>
+            }
+        </FormGroup>);
+    }
+}
+
 class LabelEditor extends Component {
 
     constructor(props) {
@@ -116,6 +175,33 @@ class LabelCategory extends Component {
         this.state = { showChilds: false, showEditor: null }
     }
 
+    get labels() {
+        let filter = this.props.filter;
+        if (!filter || (!filter.begin && !filter.end)) {
+            return this.props.node.labels;
+        }
+        let from_date = filter.begin ? new Date(filter.begin) : null;
+        let to_date = filter.end ? new Date(filter.end) : null;
+        return this.props.node.labels.filter((label) => {
+            if (!label.from_date && !label.to_date) {
+                return false;
+            }
+            if (label.from_date && to_date) {
+                let d = new Date(label.from_date);
+                if (d > to_date) {
+                    return false;
+                }
+            }
+            if (label.to_date && from_date) {
+                let d = new Date(label.from_date);
+                if (d < from_date) {
+                    return false;
+                }
+            }
+            return true;
+        })
+    }
+
     render() {
         let node = this.props.node;
         let style={"backgroundColor": node.bg_color, "color": node.color};
@@ -147,8 +233,8 @@ class LabelCategory extends Component {
                 <Collapse in={this.state.showChilds}>
                 <ListGroup>
                 {node.childs.map((node) =>
-                    <LabelCategory key={node._id} node={node} tree={this.props.tree} onLabelSelect={this.props.onLabelSelect}/>)}
-                {node.labels.map((node) =>
+                    <LabelCategory filter={this.props.filter} key={node._id} node={node} tree={this.props.tree} onLabelSelect={this.props.onLabelSelect}/>)}
+                {this.labels.map((node) =>
                     <LabelItem key={node._id} node={node} tree={this.props.tree}  onLabelSelect={this.props.onLabelSelect}/>)}
                 {node.childs.length === 0 && node.labels.length === 0 &&  <span><i>Empty</i></span>}
                 </ListGroup>
@@ -186,6 +272,7 @@ class LabelTree extends Component {
             showNewTopLevel: false,
             nodes: [],
             labels: [],
+            filter: {begin: null, end: null},
         };
     }
 
@@ -216,17 +303,23 @@ class LabelTree extends Component {
         });
     }
 
+    onDateFilterChange = (filter) => {
+        this.setState({...this.state, filter: {...this.state.filter, ...filter}});
+    }
+
     render() {
-        return(<div><Button onClick={() => this.setState(update(this.state, {showNewTopLevel: {$set: true}}))}>New top level category</Button>
+        return(<div>
             { this.props.showMap &&
             <MapView viewport={{center: [50.0884, 14.40402], zoom: 16}}>
                 {this.state.labels.filter(label => label.location).map((label, i) => <MyMarker key={i} location={label.location}>{label.name}</MyMarker> )}
             </MapView> }
+            <DateFilter onChange={this.onDateFilterChange}/>
+            <Button onClick={() => this.setState(update(this.state, {showNewTopLevel: {$set: true}}))}>New top level category</Button>
             <Collapse in={this.state.showNewTopLevel}>
             <div><CategoryEditor onSubmit={(c) => this.onNewTopLevel(c)} onCancel={() => this.setState(update(this.state, {showNewTopLevel: {$set: false}}))}/></div>
             </Collapse>
             <ListGroup>
-            { this.state.nodes.map((node) => <LabelCategory key={node._id} node={node} tree={this} onLabelSelect={this.props.onLabelSelect}/>) }
+            { this.state.nodes.map((node) => <LabelCategory filter={this.state.filter} key={node._id} node={node} tree={this} onLabelSelect={this.props.onLabelSelect}/>) }
             </ListGroup>
             </div>
             )
