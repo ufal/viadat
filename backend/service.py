@@ -76,6 +76,7 @@ entries_schema = {
 metadata_type = {
     'type': 'dict',
     'schema': {
+        'handle': simple_string,
         'dc_title': required_string,
         'dc_date_created': {"type": "datetime", "nullable": True},
         'viadat_narrator_name': simple_string,
