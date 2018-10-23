@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import { FormGroup, ControlLabel, FormControl, Modal, Button } from 'react-bootstrap';
 import update from 'react-addons-update';
+import DatePicker from 'react-datepicker';
+import moment from 'moment';
 
 function status_to_name(name) {
     if (!name || name === "x") {
@@ -114,6 +116,13 @@ class MetadataDialog extends Component {
             onChange={(e) => this.setState(update(this.state, {metadata: {"viadat_narrator_name": {$set: e.target.value}}}))}
           >
           </FormControl>
+          </FormGroup>
+
+
+        <FormGroup>
+          <ControlLabel>Creation date</ControlLabel>
+          <DatePicker selected={moment(this.state.metadata["dc_date_created"])}
+                onChange={(e) => this.setState(update(this.state, {metadata: {"dc_date_created": {$set: (new Date(e)).toUTCString()}}}))}/>
           </FormGroup>
 
 
