@@ -90,3 +90,7 @@ export function fetch_ready_groups() {
 export function update_group(item, update) {
   return call_service("groups/" + item._id, update, "PATCH", item._etag);
 }
+
+export function remove_group(group) {
+  return call_service("groups/" + group._id, group, "DELETE", group._etag);
+}

@@ -49,7 +49,7 @@ def ref_list(resource, embeddable=False):
     return list_type(ref(resource, embeddable=embeddable))
 
 
-item_list = ref_list('entryitems', True)
+#item_list = ref_list('entryitems', True)
 
 simple_string = {
     "type": "string"
@@ -126,6 +126,7 @@ transcripts_schema = {
     }
 }
 
+"""
 entryitems_schema = {
     'entry_id': {
          'type': 'objectid',
@@ -153,6 +154,7 @@ entryitems_schema = {
         'type': 'list',
      },
 }
+"""
 
 labelcategory_schema = {
     'name': required_string,
@@ -204,11 +206,6 @@ settings = {
     'X_HEADERS': ['Authorization', 'Content-type', 'If-Match'],
     'DOMAIN': {
         'entries': make_domain(entries_schema),
-        'entryitems': {
-            "schema": entryitems_schema,
-            'cache_control': 'no-cache, no-store, must-revalidate',
-            'cache_expires': 0,
-        },
         'lemmas': {
             "schema": lemmas_schema,
             'cache_control': 'no-cache, no-store, must-revalidate',
@@ -277,6 +274,27 @@ def on_delete_source(source):
 
 
 app.on_delete_item_sources = on_delete_source
+
+
+def on_delete_group(group):
+    transcripts_db = app.data.driver.db["transcripts"]
+    transcripts = list(transcripts_db.find({"group": group["_id"]}))
+
+    tids = [t["_id"] for t in transcripts]
+
+    lemmas_db = app.data.driver.db["lemmas"]
+    lemmas_db.update_many({}, {"$pull": {"transcripts": {"$in": tids}}})
+
+    labelinstances_db = app.data.driver.db["labelinstances"]
+    labelinstances_db.remove(
+        {"transcript": {"$in": tids}})
+
+    for transcript in transcripts:
+        os.remove(filename(transcript["uuid"]))
+
+
+
+app.on_delete_item_groups = on_delete_group
 
 
 @app.route("/lemmatize")

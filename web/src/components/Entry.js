@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Upload } from './Upload';
 import { Metadata } from './Metadata'
 
-import {update_source, autodetect_source_metadata, update_group, fetch_entry, fetch_groups, upload_source_files, upload_at_files, create_source, fetch_sources, fetch_transcripts, create_transcription, remove_source} from '../services/entries';
+import {update_source, autodetect_source_metadata, update_group, fetch_entry, fetch_groups, upload_source_files, upload_at_files, create_source, fetch_sources, fetch_transcripts, create_transcription, remove_source, remove_group} from '../services/entries';
 import update from 'react-addons-update';
 
 import { SERVER_URL } from '../config.js';
@@ -116,6 +116,12 @@ class GroupItem extends Component {
         })
     }
 
+    onRemove = () => {
+        remove_group(this.props.group).then(() => {
+            this.props.entry.reload();
+        })
+    }
+
     render() {
         return (<div>
             <h3>{this.props.group.metadata.title}</h3>
@@ -123,6 +129,7 @@ class GroupItem extends Component {
             <Metadata metadata={this.props.group.metadata} onUpdate={(m) => this.updateMetadata(m)}/>
 
             {   this.props.group.transcripts.length !== 0 &&
+                <div>
                 <Table responsive>
                 <thead>
                 <tr><th>Name</th><th>Statistics</th><th>Download</th></tr>
@@ -142,6 +149,8 @@ class GroupItem extends Component {
                 }
                 </tbody>
                 </Table>
+                <Button onClick={this.onRemove}>Remove</Button>
+                </div>
             }
         <p>
         </p>
