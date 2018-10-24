@@ -9,6 +9,10 @@ export function create_labelinstance(label_instance) {
     return call_service_json("labelinstances", label_instance);
 }
 
+export function remove_labelcategory(category) {
+    return call_service("labelcategories/" + category._id, category, "DELETE", category._etag);
+}
+
 export function create_label(label) {
     return call_service_json("labels", label);
 }

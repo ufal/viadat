@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Checkbox, Button, FormControl, FormGroup, ControlLabel, ListGroup, ListGroupItem, Collapse, Glyphicon, MenuItem, DropdownButton, Panel} from 'react-bootstrap';
 
 import update from 'react-addons-update';
-import { create_label, fetch_labels, create_labelcategory, fetch_labelcategories } from '../services/labels.js';
+import { create_label, fetch_labels, create_labelcategory, fetch_labelcategories, remove_labelcategory } from '../services/labels.js';
 import MapView, { MyMarker } from './MapView';
 import DatePicker from 'react-datepicker';
 import moment from 'moment';
@@ -202,6 +202,12 @@ class LabelCategory extends Component {
         })
     }
 
+    onRemoveCategory = () => {
+        remove_labelcategory(this.props.node).then(() => {
+            this.props.tree.reload();
+        });
+    }
+
     render() {
         let node = this.props.node;
         let style={"backgroundColor": node.bg_color, "color": node.color};
@@ -215,7 +221,7 @@ class LabelCategory extends Component {
                     title="Edit">
                 <MenuItem onClick={() => this.setState(update(this.state, {showEditor: {$set: "new-label"}}))}>New label</MenuItem>
                 <MenuItem onClick={() => this.setState(update(this.state, {showEditor: {$set: "new-cat"}}))}>New sub-category</MenuItem>
-                <MenuItem>Remove category</MenuItem>
+                <MenuItem onClick={this.onRemoveCategory}>Remove category</MenuItem>
                 </DropdownButton>
                 }
 
@@ -291,7 +297,12 @@ class LabelTree extends Component {
             }
             for (let item of data[0]._items) {
                 if (item.parent) {
-                    map.get(item.parent).childs.push(item);
+                    let p = map.get(item.parent);
+                    if (p) {
+                        p.childs.push(item);
+                    } else {
+                        console.log("Orphan label:", item);
+                    }
                 } else {
                     nodes.push(item);
                 }

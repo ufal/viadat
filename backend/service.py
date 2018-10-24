@@ -235,12 +235,39 @@ app = Eve(settings=settings, static_folder=FILES, auth=TokenAuthenticator)
 CORS(app)
 
 
+def category_subtree(category):
+    category_db = app.data.driver.db["labelcategories"]
+    subcats = category_db.find({"parent": category["_id"]})
+    result = [category["_id"]]
+    for c in subcats:
+        result += category_subtree(c)
+    return result
+
+
 def on_delete_label(item):
     instances = app.data.driver.db["labelinstances"]
     instances.remove({"label": item["_id"]})
 
 
 app.on_delete_item_labels += on_delete_label
+
+
+def on_delete_labelcategories(item):
+    categories = category_subtree(item)
+    print("DELETING", categories)
+    label_db = app.data.driver.db["labels"]
+    labels = [label["_id"]
+              for label in label_db.find({"parent": {"$in": categories}})]
+
+    instances = app.data.driver.db["labelinstances"]
+    instances.remove({"label": {"$in": labels}})
+    label_db.remove({"_id": {"$in": labels}})
+
+    category_db = app.data.driver.db["labelcategories"]
+    category_db.remove({"_id": {"$in": categories}})
+
+
+app.on_delete_item_labelcategories = on_delete_labelcategories
 
 
 @app.route("/lemmatize")
