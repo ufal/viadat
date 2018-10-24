@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Upload } from './Upload';
 import { Metadata } from './Metadata'
 
-import {update_source, autodetect_source_metadata, update_group, fetch_entry, fetch_groups, upload_source_files, upload_at_files, create_source, fetch_sources, fetch_transcripts, create_transcription} from '../services/entries';
+import {update_source, autodetect_source_metadata, update_group, fetch_entry, fetch_groups, upload_source_files, upload_at_files, create_source, fetch_sources, fetch_transcripts, create_transcription, remove_source} from '../services/entries';
 import update from 'react-addons-update';
 
 import { SERVER_URL } from '../config.js';
@@ -57,6 +57,12 @@ class SourceItem extends Component {
         })
     }
 
+    removeSource = () => {
+        remove_source(this.props.source).then(() => {
+            this.props.entry.reload();
+        })
+    }
+
     render() {
         return (<div>
             <h3>{this.props.source.metadata.title}</h3>
@@ -93,7 +99,8 @@ class SourceItem extends Component {
                 </Table>
             }
         <p>
-        <Button disabled={!this.canUpload} onClick={() => this.setState(update(this.state, {showUploadDialog: {$set: true}}))}>Upload files</Button>
+        <Button disabled={!this.canUpload} onClick={() => this.setState(update(this.state, {showUploadDialog: {$set: true}}))}>Upload files</Button>{" "}
+        <Button disabled={!this.canUpload} onClick={this.removeSource}>Remove</Button>{" "}
         <Button disabled={this.canUpload || !!this.state.message} onClick={() => this.createAt()}>Create AT</Button> {this.state.message}
         </p>
         </div>)

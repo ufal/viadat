@@ -270,6 +270,15 @@ def on_delete_labelcategories(item):
 app.on_delete_item_labelcategories = on_delete_labelcategories
 
 
+def on_delete_source(source):
+    for f in source["files"]:
+        logging.info("Removing file %s", f["uuid"])
+        os.remove(filename(f["uuid"]))
+
+
+app.on_delete_item_sources = on_delete_source
+
+
 @app.route("/lemmatize")
 def lemmatize():
     text = request.args["q"]

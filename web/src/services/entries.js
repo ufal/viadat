@@ -43,6 +43,10 @@ export function create_source(source) {
   return call_service_json("sources", source);
 }
 
+export function remove_source(source) {
+  return call_service("sources/" + source._id, source, "DELETE", source._etag);
+}
+
 export function autodetect_source_metadata(source_id) {
   return call_service_json("sources/" + source_id + "/autodetect")
 }
