@@ -14,6 +14,10 @@ export function create_entry(entry) {
   return call_service_json("entries", entry);
 }
 
+export function remove_entry(entry) {
+  return call_service("entries/" + entry._id, entry, "DELETE", entry._etag);
+}
+
 export function upload_source_files(source_id, files) {
   var data = new FormData();
   for(let f of files) {

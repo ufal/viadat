@@ -293,8 +293,17 @@ def on_delete_group(group):
         os.remove(filename(transcript["uuid"]))
 
 
-
 app.on_delete_item_groups = on_delete_group
+
+
+def on_delete_entry(entry):
+    sources_db = app.data.driver.db["sources"]
+    sources = list(sources_db.find({"entry": entry["_id"]}))
+    if sources:
+        raise Exception("Entry is not empty")
+
+
+app.on_delete_item_entries = on_delete_entry
 
 
 @app.route("/lemmatize")

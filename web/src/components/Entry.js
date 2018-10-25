@@ -3,8 +3,7 @@ import { ListGroup, ListGroupItem, Table, Glyphicon, Button } from 'react-bootst
 import { Link } from 'react-router-dom';
 import { Upload } from './Upload';
 import { Metadata } from './Metadata'
-
-import {update_source, autodetect_source_metadata, update_group, fetch_entry, fetch_groups, upload_source_files, upload_at_files, create_source, fetch_sources, fetch_transcripts, create_transcription, remove_source, remove_group} from '../services/entries';
+import {update_source, autodetect_source_metadata, update_group, remove_entry, fetch_entry, fetch_groups, upload_source_files, upload_at_files, create_source, fetch_sources, fetch_transcripts, create_transcription, remove_source, remove_group} from '../services/entries';
 import update from 'react-addons-update';
 
 import { SERVER_URL } from '../config.js';
@@ -214,6 +213,12 @@ class Entry extends Component {
         })
     }
 
+    onRemove = () => {
+        remove_entry(this.state.entry).then(() => {
+            this.props.history.push("/entries")
+        });
+    }
+
     render() {
         return (
                 <div>
@@ -221,8 +226,10 @@ class Entry extends Component {
                         <div>
                         <h1>{this.state.entry.name}</h1>
                         <h2>Source items</h2>
+
                         <p>
-                        <Button onClick={() => this.newSourceItem()}>New source item</Button>
+                        <Button onClick={() => this.newSourceItem()}>New source item</Button>{" "}
+                        <Button disabled={this.state.sources.length !== 0} onClick={this.onRemove}>Remove entry</Button>
                         </p>
                         <ListGroup>
                             {this.state.sources.map((s) => <ListGroupItem key={s._id}><SourceItem source={s} entry={this}/></ListGroupItem>)}
