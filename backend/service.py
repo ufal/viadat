@@ -79,6 +79,7 @@ metadata_type = {
         'handle': simple_string,
         'dc_title': required_string,
         'dc_date_created': {"type": "datetime", "nullable": True},
+        'dc_rights_license': simple_string,
         'viadat_narrator_name': simple_string,
         'status': simple_string,
     }

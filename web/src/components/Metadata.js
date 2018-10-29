@@ -89,7 +89,7 @@ class MetadataDialog extends Component {
           <br/>
           <StatusLabel status={this.state.metadata.status}/><span> </span>
           { this.statusText() && <Button bsSize="small" onClick={() => this.setNewStatus()}>{this.statusText()}</Button> }
-          </FormGroup>
+        </FormGroup>
 
 
         <FormGroup
@@ -103,8 +103,7 @@ class MetadataDialog extends Component {
             onChange={(e) => this.setState(update(this.state, {metadata: {"dc_title": {$set: e.target.value}}}))}
           >
           </FormControl>
-          </FormGroup>
-
+        </FormGroup>
 
         <FormGroup
           controlId="viadat_narrator_name"
@@ -116,15 +115,25 @@ class MetadataDialog extends Component {
             onChange={(e) => this.setState(update(this.state, {metadata: {"viadat_narrator_name": {$set: e.target.value}}}))}
           >
           </FormControl>
-          </FormGroup>
-
+        </FormGroup>
 
         <FormGroup>
           <ControlLabel>Creation date</ControlLabel>
           <DatePicker selected={moment(this.state.metadata["dc_date_created"])}
                 onChange={(e) => this.setState(update(this.state, {metadata: {"dc_date_created": {$set: (new Date(e)).toUTCString()}}}))}/>
-          </FormGroup>
+        </FormGroup>
 
+        <FormGroup>
+        <ControlLabel>License</ControlLabel>
+        <FormControl componentClass="select" placeholder="select"
+            value={this.state.metadata.dc_rights_license}
+            onChange={(e) => this.setState(update(this.state, {metadata: {"dc_rights_license": {$set: e.target.value}}}))}
+        >
+        <option value=""></option>
+            <option value="Public domain (https://creativecommons.org/publicdomain/mark/1.0/)">Public domain (https://creativecommons.org/publicdomain/mark/1.0/)</option>
+            <option value="Creative Commons - Attribution 4.0 International (CC BY 4.0) (https://creativecommons.org/licenses/by/4.0/)">Creative Commons - Attribution 4.0 International (CC BY 4.0) (https://creativecommons.org/licenses/by/4.0/)</option>
+        </FormControl>
+        </FormGroup>
 
         <Modal.Footer>
         {this.state.message}{" "}
