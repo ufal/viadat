@@ -63,7 +63,11 @@ let Paragraph = (props) => {
             }
             let t = text.slice(offset, p.pos);
             let id = id_prefix + offset;
-            output.push(<span key={id} id={id} style={style} onClick={e => props.renderer.onClick(clickId)}>{t}</span>)
+            if (clickId !== null) {
+                output.push(<span key={id} id={id} style={style} onClick={e => props.renderer.onClick(clickId)}>{t}</span>)
+            } else {
+                output.push(<span key={id} id={id} style={style}>{t}</span>)
+            }
         }
         if (p.push) {
             stack.push(p.segment);
@@ -202,7 +206,7 @@ class TextRenderer extends Component {
     }
 
     refreshLabels() {
-        fetch_labelinstance_map(this.state.document._id).then((m) => {
+        fetch_labelinstance_map(this.state.document.id).then((m) => {
             this.recompState(update(this.state, {document: {label_instances: {$set: m}}}));
         })
     }
