@@ -25,6 +25,8 @@ import mimetypes
 
 import logging
 
+REPOSITORY_SETTINGS = None
+
 
 def ref(resource, embeddable=False, required=False):
     return {
@@ -478,14 +480,7 @@ def source_autodetect(source_id):
 @app.route('/export', methods=['POST'])
 @requires_auth("sources")
 def export():
-    # TODO: This should be loaded from DB
-    settings = {
-        "url": "https://ufal-point-dev.ms.mff.cuni.cz/viadat-repo/",
-        "user": "demo@ufal-point-dev.ms.mff.cuni.cz",
-        "password": "***REMOVED***",
-        "community": "export-test1",
-        "collection": "testcol"
-    }
+    settings = REPOSITORY_SETTINGS
 
     collection = get_repository_collection(settings)
 
@@ -530,7 +525,9 @@ def export():
                 f.flush()
                 remote_item.add_bitstream(
                     f.name, "application/xml", t["name"] + ".labels.xml")
-
+        groups_db.update({"_id": group["_id"]},
+                         {"$set": {"metadata.status": "p",
+                                   "metadata.handle": remote_item.handle}})
         logging.info("Exported %s", metadata["dc_title"])
     return "Ok"
 
@@ -759,5 +756,12 @@ def login():
         abort(400)
 
 
+def load_repository_config():
+    with open("repository.conf") as f:
+        return json.load(f)
+
+
 def run():
+    global REPOSITORY_SETTINGS
+    REPOSITORY_SETTINGS = load_repository_config()
     app.run(threaded=True)

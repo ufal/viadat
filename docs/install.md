@@ -7,11 +7,26 @@
 - MongoDB
 
 
-## Installation of backend
+## Installation of backend requirements
 
 ```
 $ cd backend
 $ pip3 install -r requirements.txt
+```
+
+## Repository configuration
+
+Create file "repository.conf" in viadat root directory with configuration
+for repository in the following format:
+
+```
+{
+        "url": "<URL-FOR-REPOSITORY>",
+        "user": "<USER-NAME>",
+        "password": "<PASSWORD>",
+        "community": "<COMMUNITY-NAME>",
+        "collection": "<COLLECTION-NAME>"
+}
 ```
 
 ## Creating an user account
