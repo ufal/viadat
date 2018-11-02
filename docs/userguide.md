@@ -15,3 +15,8 @@ Uploading files into "source":
 Autogenerating metadata from upload sources:
 
 ![](images/metadata.svg)
+
+
+# Creating labels
+
+![](images/newli.svg)
