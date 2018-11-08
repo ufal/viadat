@@ -3,7 +3,7 @@ import { Checkbox, Button, FormControl, FormGroup, ControlLabel, ListGroup, List
 
 import update from 'react-addons-update';
 import { create_label, fetch_labels, create_labelcategory, fetch_labelcategories, remove_labelcategory } from '../services/labels.js';
-import MapView, { MyMarker } from './MapView';
+import MapView, { MyMarker, AreaSelectorMapView } from './MapView';
 import DatePicker from 'react-datepicker';
 import moment from 'moment';
 
@@ -177,25 +177,41 @@ class LabelCategory extends Component {
 
     get labels() {
         let filter = this.props.filter;
-        if (!filter || (!filter.begin && !filter.end)) {
+        if (!filter || (!filter.begin && !filter.end && !filter.area)) {
             return this.props.node.labels;
         }
+
         let from_date = filter.begin ? new Date(filter.begin) : null;
         let to_date = filter.end ? new Date(filter.end) : null;
         return this.props.node.labels.filter((label) => {
-            if (!label.from_date && !label.to_date) {
-                return false;
-            }
-            if (label.from_date && to_date) {
-                let d = new Date(label.from_date);
-                if (d > to_date) {
+            if (filter.area) {
+                if (!label.location) {
                     return false;
                 }
-            }
-            if (label.to_date && from_date) {
-                let d = new Date(label.from_date);
-                if (d < from_date) {
+                let c = label.location.coordinates;
+                let a1 = filter.area[0];
+                let a2 = filter.area[1];
+                if (c[0] < a1[0] || c[0] > a2[0] || c[1] < a1[1] || c[1] > a2[1]) {
+                    console.log("FF", c, a1, a2);
                     return false;
+                }
+                console.log("PASS", c, a1, a2);
+            }
+            if (from_date || to_date) {
+                if (!label.from_date && !label.to_date) {
+                    return false;
+                }
+                if (label.from_date && to_date) {
+                    let d = new Date(label.from_date);
+                    if (d > to_date) {
+                        return false;
+                    }
+                }
+                if (label.to_date && from_date) {
+                    let d = new Date(label.from_date);
+                    if (d < from_date) {
+                        return false;
+                    }
                 }
             }
             return true;
@@ -278,7 +294,7 @@ class LabelTree extends Component {
             showNewTopLevel: false,
             nodes: [],
             labels: [],
-            filter: {begin: null, end: null},
+            filter: {begin: null, end: null, area: null},
         };
     }
 
@@ -318,12 +334,16 @@ class LabelTree extends Component {
         this.setState({...this.state, filter: {...this.state.filter, ...filter}});
     }
 
+    onMapFilter = (rect) => {
+        this.setState({...this.state, filter: {...this.state.filter, area: rect}});
+    }
+
     render() {
         return(<div>
             { this.props.showMap &&
-            <MapView viewport={{center: [50.0884, 14.40402], zoom: 16}}>
+            <AreaSelectorMapView viewport={{center: [50.0884, 14.40402], zoom: 16}} onSelect={this.onMapFilter}>
                 {this.state.labels.filter(label => label.location).map((label, i) => <MyMarker key={i} location={label.location}>{label.name}</MyMarker> )}
-            </MapView> }
+            </AreaSelectorMapView> }
             <DateFilter onChange={this.onDateFilterChange}/>
             <Button onClick={() => this.setState(update(this.state, {showNewTopLevel: {$set: true}}))}>New top level category</Button>
             <Collapse in={this.state.showNewTopLevel}>

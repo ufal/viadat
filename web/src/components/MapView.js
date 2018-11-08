@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import { Map, TileLayer, withLeaflet, Marker, Popup } from 'react-leaflet';
+import { Map, TileLayer, withLeaflet, Marker, Popup, CircleMarker, Rectangle } from 'react-leaflet';
 import { Button, Modal} from 'react-bootstrap';
 
 import { ReactLeafletSearch } from 'react-leaflet-search'
@@ -114,6 +114,64 @@ export default class MapView extends Component {
         <Search/>
         {this.props.children}
       </Map>
+    )
+  }
+}
+
+export class AreaSelectorMapView extends Component {
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      p1: null,
+      p2: null,
+    }
+  }
+
+  /*
+  onViewportChanged = viewport => {
+    this.setState({ viewport });
+  }*/
+
+  onClick = (p) => {
+    let pp = [p.latlng.lat, p.latlng.lng];
+    if (!this.state.p1 || this.state.p2) {
+      this.setState({...this.state, p1: pp, p2: null});
+    } else {
+      let state = {...this.state, p2: pp};
+      if (state.p1[0] > state.p2[0]) {
+        let v = state.p1[0];
+        state.p1[0] = state.p2[0];
+        state.p2[0] = v;
+      }
+      if (state.p1[1] > state.p2[1]) {
+        let v = state.p1[1];
+        state.p1[1] = state.p2[1];
+        state.p2[1] = v;
+      }
+      this.props.onSelect([state.p1, state.p2]);
+      this.setState(state);
+    }
+  }
+
+  onReset = () => {
+    this.setState({...this.state, p1: null, p2: null});
+    this.props.onSelect(null);
+  }
+
+  render() {
+    return (
+      <div>
+      <p style={{textAlign: "center"}}>Click to select area</p>
+      <MapView viewport={this.props.viewport} zoom={this.props.zoom} onClick={this.onClick}>
+      {this.state.p1 && !this.state.p2 && <CircleMarker center={this.state.p1} radius={10}/>}
+      {this.state.p2 && <Rectangle bounds={[this.state.p1, this.state.p2]}/>}
+      {this.props.children}
+      </MapView>
+      <p>
+      <Button disabled={!this.state.p1} onClick={this.onReset}>Reset map filter</Button>
+      </p>
+      </div>
     )
   }
 }
