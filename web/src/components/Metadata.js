@@ -1,8 +1,8 @@
-import React, { Component } from 'react';
-import { FormGroup, ControlLabel, FormControl, Modal, Button } from 'react-bootstrap';
-import update from 'react-addons-update';
-import DatePicker from 'react-datepicker';
 import moment from 'moment';
+import React, { Component } from 'react';
+import update from 'react-addons-update';
+import { Button, ControlLabel, FormControl, FormGroup, Modal } from 'react-bootstrap';
+import DatePicker from 'react-datepicker';
 
 function status_to_name(name) {
     if (!name || name === "x") {

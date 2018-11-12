@@ -1,14 +1,14 @@
-
 import React, { Component } from 'react';
-import { Button, Glyphicon, Tab, Tabs, Modal, Checkbox, Table } from 'react-bootstrap';
-import { AutoAffix } from 'react-overlays';
-import { SERVER_URL }  from '../config.js';
 import update from 'react-addons-update';
+import { Button, Checkbox, Glyphicon, Modal, Tab, Table, Tabs } from 'react-bootstrap';
+import { AutoAffix } from 'react-overlays';
 import { soundManager } from 'soundmanager2';
-import LabelTree from './LabelTree.js';
-import { create_labelinstance, delete_labelinstance, fetch_labels } from '../services/labels.js';
+
+import { SERVER_URL } from '../config.js';
 import { fetch_document, fetch_labelinstance_map } from '../models/document.js';
-import { Link } from 'react-router-dom';
+import { create_labelinstance, delete_labelinstance, fetch_labels } from '../services/labels.js';
+import LabelTree from './LabelTree.js';
+
 
 function formatTime(seconds) {
     let secs = Math.floor(seconds % 60);

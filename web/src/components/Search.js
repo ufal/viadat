@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
-import { Table, Button, FormControl, FormGroup, ControlLabel } from 'react-bootstrap';
-
-import {fetch_search} from '../services/search.js';
+import { Button, ControlLabel, FormControl, FormGroup, Table } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
+
+import { fetch_search } from '../services/search.js';
 
 
 let ResultRow = props => {

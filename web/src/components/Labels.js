@@ -1,16 +1,14 @@
-import React, { Component } from 'react';
-import { Table, Button, FormControl, FormGroup, ControlLabel, Modal, Label} from 'react-bootstrap';
-
-import update from 'react-addons-update';
-
-import LabelTree from './LabelTree';
-import { update_label, fetch_labelinstances_of_label, remove_label } from '../services/labels.js';
-import MapView from './MapView';
-import {LocationSelectDialog, MyMarker} from './MapView';
-
-import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+
 import moment from 'moment';
+import React, { Component } from 'react';
+import update from 'react-addons-update';
+import { Button, ControlLabel, FormControl, FormGroup, Label, Modal, Table } from 'react-bootstrap';
+import DatePicker from 'react-datepicker';
+
+import { fetch_labelinstances_of_label, remove_label, update_label } from '../services/labels.js';
+import LabelTree from './LabelTree';
+import { LocationSelectDialog } from './MapView';
 
 class LabelDialog extends Component {
 

@@ -1,9 +1,8 @@
-import React, { Component } from 'react';
-import TextRenderer from './TextRenderer';
-
-import {fetch_transcript} from '../services/entries';
-
 import queryString from 'query-string';
+import React, { Component } from 'react';
+
+import { fetch_transcript } from '../services/entries';
+import TextRenderer from './TextRenderer';
 
 class Item extends Component {
 

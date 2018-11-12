@@ -1,11 +1,28 @@
 import React, { Component } from 'react';
-import { Checkbox, Button, FormControl, FormGroup, ControlLabel, ListGroup, ListGroupItem, Collapse, Glyphicon, MenuItem, DropdownButton, Panel} from 'react-bootstrap';
-
 import update from 'react-addons-update';
-import { create_label, fetch_labels, create_labelcategory, fetch_labelcategories, remove_labelcategory } from '../services/labels.js';
-import MapView, { MyMarker, AreaSelectorMapView } from './MapView';
+import {
+    Button,
+    Collapse,
+    ControlLabel,
+    DropdownButton,
+    FormControl,
+    FormGroup,
+    Glyphicon,
+    ListGroup,
+    ListGroupItem,
+    MenuItem,
+    Panel,
+} from 'react-bootstrap';
 import DatePicker from 'react-datepicker';
-import moment from 'moment';
+
+import {
+    create_label,
+    create_labelcategory,
+    fetch_labelcategories,
+    fetch_labels,
+    remove_labelcategory,
+} from '../services/labels.js';
+import { AreaSelectorMapView, MyMarker } from './MapView';
 
 
 let LabelItem = (props) => {

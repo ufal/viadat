@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
-import { Table, Button, FormControl, FormGroup, ControlLabel, Collapse, Panel} from 'react-bootstrap';
-import { Link } from 'react-router-dom';
 import update from 'react-addons-update';
-import { fetch_entries, create_entry } from '../services/entries';
+import { Button, Collapse, ControlLabel, FormControl, FormGroup, Panel, Table } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
+
+import { create_entry, fetch_entries } from '../services/entries';
 
 class NewEntryForm extends Component {
 

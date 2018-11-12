@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
+import update from 'react-addons-update';
 import { Button } from 'react-bootstrap';
 
-import update from 'react-addons-update';
-
-import {fetch_ready_sources, run_export, fetch_ready_groups} from '../services/entries';
+import { fetch_ready_groups, fetch_ready_sources, run_export } from '../services/entries';
 
 class Export extends Component {
 

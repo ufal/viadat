@@ -1,7 +1,7 @@
-
 import React, { Component } from 'react';
-import { Alert, Modal, Button, Table, Glyphicon } from 'react-bootstrap';
 import update from 'react-addons-update';
+import { Alert, Button, Glyphicon, Modal, Table } from 'react-bootstrap';
+
 
 
 let FilePicker = (props) => {

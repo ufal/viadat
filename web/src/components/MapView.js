@@ -1,11 +1,8 @@
-import React, { Component } from 'react';
-
-import { Map, TileLayer, withLeaflet, Marker, Popup, CircleMarker, Rectangle } from 'react-leaflet';
-import { Button, Modal} from 'react-bootstrap';
-
-import { ReactLeafletSearch } from 'react-leaflet-search'
-
 import L from 'leaflet';
+import React, { Component } from 'react';
+import { Button, Modal } from 'react-bootstrap';
+import { CircleMarker, Map, Marker, Popup, Rectangle, TileLayer, withLeaflet } from 'react-leaflet';
+import { ReactLeafletSearch } from 'react-leaflet-search';
 
 delete L.Icon.Default.prototype._getIconUrl;
 
@@ -127,11 +124,6 @@ export class AreaSelectorMapView extends Component {
       p2: null,
     }
   }
-
-  /*
-  onViewportChanged = viewport => {
-    this.setState({ viewport });
-  }*/
 
   onClick = (p) => {
     let pp = [p.latlng.lat, p.latlng.lng];

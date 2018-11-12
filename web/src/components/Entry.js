@@ -1,12 +1,27 @@
 import React, { Component } from 'react';
-import { ListGroup, ListGroupItem, Table, Glyphicon, Button } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
-import { Upload } from './Upload';
-import { Metadata } from './Metadata'
-import {update_source, autodetect_source_metadata, update_group, remove_entry, fetch_entry, fetch_groups, upload_source_files, upload_at_files, create_source, fetch_sources, fetch_transcripts, create_transcription, remove_source, remove_group} from '../services/entries';
 import update from 'react-addons-update';
+import { Button, Glyphicon, ListGroup, ListGroupItem, Table } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 
 import { SERVER_URL } from '../config.js';
+import {
+    autodetect_source_metadata,
+    create_source,
+    create_transcription,
+    fetch_entry,
+    fetch_groups,
+    fetch_sources,
+    fetch_transcripts,
+    remove_entry,
+    remove_group,
+    remove_source,
+    update_group,
+    update_source,
+    upload_at_files,
+    upload_source_files,
+} from '../services/entries';
+import { Metadata } from './Metadata';
+import { Upload } from './Upload';
 
 const FileDownloadLink = props =>
     <a href={SERVER_URL + "download/" + props.file.uuid + "/" + props.file.name + (props.suffix || "")}>{props.children}</a>
