@@ -1,6 +1,9 @@
-
-import { call_service, call_service_json, call_service_text, call_raw_service } from './utils.js';
-
+import {
+  call_service,
+  call_service_json,
+  call_service_text,
+  call_raw_service
+} from "./utils.js";
 
 export function fetch_entries() {
   return call_service_json("entries");
@@ -20,23 +23,22 @@ export function remove_entry(entry) {
 
 export function upload_source_files(source_id, files) {
   var data = new FormData();
-  for(let f of files) {
-    data.append('file', f);
+  for (let f of files) {
+    data.append("file", f);
   }
   return call_raw_service("upload/" + source_id, data);
 }
 
 export function upload_at_files(entry_id, files) {
   var data = new FormData();
-  for(let f of files) {
-    data.append('file', f);
+  for (let f of files) {
+    data.append("file", f);
   }
   return call_raw_service("upload-at/" + entry_id, data);
 }
 
-
 export function fetch_sources(entry_id) {
-  return call_service_json("sources?where={\"entry\": \"" + entry_id + "\"}");
+  return call_service_json('sources?where={"entry": "' + entry_id + '"}');
 }
 
 export function fetch_source(item_id) {
@@ -52,7 +54,7 @@ export function remove_source(source) {
 }
 
 export function autodetect_source_metadata(source_id) {
-  return call_service_json("sources/" + source_id + "/autodetect")
+  return call_service_json("sources/" + source_id + "/autodetect");
 }
 
 export function update_source(source, update) {
@@ -60,7 +62,7 @@ export function update_source(source, update) {
 }
 
 export function fetch_ready_sources() {
-  return call_service_json("sources?where={\"metadata.status\": \"r\"}");
+  return call_service_json('sources?where={"metadata.status": "r"}');
 }
 
 export function run_export() {
@@ -68,19 +70,21 @@ export function run_export() {
 }
 
 export function fetch_groups(entry_id) {
-  return call_service_json("groups?where={\"entry\": \"" + entry_id + "\"}");
+  return call_service_json('groups?where={"entry": "' + entry_id + '"}');
 }
 
 export function fetch_transcripts(group_id) {
-  return call_service_json("transcripts?where={\"group\": \"" + group_id + "\"}");
+  return call_service_json('transcripts?where={"group": "' + group_id + '"}');
 }
 
 export function create_transcription(source_id) {
-  return call_raw_service("create-at/" + source_id)
+  return call_raw_service("create-at/" + source_id);
 }
 
 export function fetch_transcript(transcript_id) {
-  return call_service_json("transcripts/" + transcript_id + '?embedded={"group": 1}');
+  return call_service_json(
+    "transcripts/" + transcript_id + '?embedded={"group": 1}'
+  );
 }
 
 export function fetch_transcript_content(transcript) {
@@ -88,7 +92,7 @@ export function fetch_transcript_content(transcript) {
 }
 
 export function fetch_ready_groups() {
-  return call_service_json("groups?where={\"metadata.status\": \"r\"}");
+  return call_service_json('groups?where={"metadata.status": "r"}');
 }
 
 export function update_group(item, update) {

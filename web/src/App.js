@@ -1,21 +1,33 @@
-import React, { Component } from 'react';
-import './App.css';
-import { Navbar, Nav, NavItem, Glyphicon, MenuItem, NavDropdown } from 'react-bootstrap';
-import { Route, BrowserRouter, Switch, NavLink, Redirect } from 'react-router-dom';
-import { LinkContainer } from 'react-router-bootstrap';
-import {AuthData} from './services/utils';
-import {try_load_auth_data} from './services/auth';
-import update from 'react-addons-update';
-import Home from './components/Home.js'
-import Entries from './components/Entries.js'
-import Entry from './components/Entry.js'
-import Item from './components/Item.js'
-import Search from './components/Search.js'
-import Labels from './components/Labels.js'
-import Login from './components/Login.js'
-import Export from './components/Export.js'
-import Stats from './components/Stats.js'
-
+import React, { Component } from "react";
+import "./App.css";
+import {
+  Navbar,
+  Nav,
+  NavItem,
+  Glyphicon,
+  MenuItem,
+  NavDropdown
+} from "react-bootstrap";
+import {
+  Route,
+  BrowserRouter,
+  Switch,
+  NavLink,
+  Redirect
+} from "react-router-dom";
+import { LinkContainer } from "react-router-bootstrap";
+import { AuthData } from "./services/utils";
+import { try_load_auth_data } from "./services/auth";
+import update from "react-addons-update";
+import Home from "./components/Home.js";
+import Entries from "./components/Entries.js";
+import Entry from "./components/Entry.js";
+import Item from "./components/Item.js";
+import Search from "./components/Search.js";
+import Labels from "./components/Labels.js";
+import Login from "./components/Login.js";
+import Export from "./components/Export.js";
+import Stats from "./components/Stats.js";
 
 const ProtectedRoute = ({ component: Component, ...rest }) => (
   <Route
@@ -36,72 +48,76 @@ const ProtectedRoute = ({ component: Component, ...rest }) => (
 );
 
 class App extends Component {
-
   constructor() {
     super();
-    this.state = { username: null }
+    this.state = { username: null };
     try_load_auth_data();
   }
 
   afterLogin(username) {
-    this.setState(update(this.state, {username: {$set: username}}));
+    this.setState(update(this.state, { username: { $set: username } }));
   }
 
   render() {
     return (
       <BrowserRouter>
-      <div>
-        <Navbar>
-          <Navbar.Header>
-            <Navbar.Brand>
-              <NavLink
-                  to="/">
-                  Viadat
-              </NavLink>
-            </Navbar.Brand>
-          </Navbar.Header>
+        <div>
+          <Navbar>
+            <Navbar.Header>
+              <Navbar.Brand>
+                <NavLink to="/">Viadat</NavLink>
+              </Navbar.Brand>
+            </Navbar.Header>
 
-        <Nav>
-          <LinkContainer to="/entries">
-            <NavItem href="">Entries</NavItem>
-          </LinkContainer>
+            <Nav>
+              <LinkContainer to="/entries">
+                <NavItem href="">Entries</NavItem>
+              </LinkContainer>
 
-          <LinkContainer to="/search">
-            <NavItem href="">Search</NavItem>
-          </LinkContainer>
+              <LinkContainer to="/search">
+                <NavItem href="">Search</NavItem>
+              </LinkContainer>
 
-          <LinkContainer to="/labels">
-            <NavItem href="">Labels</NavItem>
-          </LinkContainer>
+              <LinkContainer to="/labels">
+                <NavItem href="">Labels</NavItem>
+              </LinkContainer>
 
-          <LinkContainer to="/export">
-            <NavItem href="">Export</NavItem>
-          </LinkContainer>
-      </Nav>
+              <LinkContainer to="/export">
+                <NavItem href="">Export</NavItem>
+              </LinkContainer>
+            </Nav>
 
-      {this.state.username &&
-      <Nav pullRight>
-        <NavDropdown eventKey={3} title={<span><Glyphicon glyph="user" /> {this.state.username}</span>}>
-        <MenuItem eventKey={3.1}>Profile</MenuItem>
-        <MenuItem eventKey={3.2}>Logout</MenuItem>
-        </NavDropdown>
-        </Nav>}
-        </Navbar>
+            {this.state.username && (
+              <Nav pullRight>
+                <NavDropdown
+                  eventKey={3}
+                  title={
+                    <span>
+                      <Glyphicon glyph="user" /> {this.state.username}
+                    </span>
+                  }
+                >
+                  <MenuItem eventKey={3.1}>Profile</MenuItem>
+                  <MenuItem eventKey={3.2}>Logout</MenuItem>
+                </NavDropdown>
+              </Nav>
+            )}
+          </Navbar>
 
           <div className="container">
-          <Switch>
-          <Route path="/login" component={() => <Login app={this}/>}/>
-          <ProtectedRoute path="/search" component={Search} />
-          <ProtectedRoute path="/labels" component={Labels} />
-          <ProtectedRoute path="/entry/:id" component={Entry} />
-          <ProtectedRoute path="/item/:id" component={Item} />
-          <ProtectedRoute path="/stats/:id" component={Stats} />
-          <ProtectedRoute path="/entries" component={Entries} />
-          <ProtectedRoute path="/export" component={Export} />
-          <ProtectedRoute exact path="/" component={Home} />
-          </Switch>
+            <Switch>
+              <Route path="/login" component={() => <Login app={this} />} />
+              <ProtectedRoute path="/search" component={Search} />
+              <ProtectedRoute path="/labels" component={Labels} />
+              <ProtectedRoute path="/entry/:id" component={Entry} />
+              <ProtectedRoute path="/item/:id" component={Item} />
+              <ProtectedRoute path="/stats/:id" component={Stats} />
+              <ProtectedRoute path="/entries" component={Entries} />
+              <ProtectedRoute path="/export" component={Export} />
+              <ProtectedRoute exact path="/" component={Home} />
+            </Switch>
+          </div>
         </div>
-      </div>
       </BrowserRouter>
     );
   }

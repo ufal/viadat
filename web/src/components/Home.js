@@ -1,8 +1,7 @@
-import React, { Component } from 'react';
-import { Button, Grid, Jumbotron } from 'react-bootstrap';
+import React, { Component } from "react";
+import { Button, Grid, Jumbotron } from "react-bootstrap";
 
 class Home extends Component {
-
   render() {
     return (
       <Jumbotron>
@@ -13,7 +12,8 @@ class Home extends Component {
               bsStyle="success"
               bsSize="large"
               href="http://react-bootstrap.github.io/components.html"
-              target="_blank">
+              target="_blank"
+            >
               View React Bootstrap Docs
             </Button>
           </p>
@@ -21,7 +21,6 @@ class Home extends Component {
       </Jumbotron>
     );
   }
-
 }
 
 export default Home;
