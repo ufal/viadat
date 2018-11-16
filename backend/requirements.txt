@@ -1,3 +1,6 @@
+flask_cors
+requests
+numpy
 lxml
 eve
 sox
