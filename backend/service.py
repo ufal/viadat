@@ -764,4 +764,4 @@ def load_repository_config():
 def run():
     global REPOSITORY_SETTINGS
     REPOSITORY_SETTINGS = load_repository_config()
-    app.run(threaded=True)
+    app.run(threaded=True, host="0.0.0.0")
