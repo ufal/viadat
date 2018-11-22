@@ -3,6 +3,7 @@ from .fs.filestore import store, filename, load, filesize, compute_hash
 from .audio import cut
 from flask_cors import CORS
 from flask import jsonify, abort, Response
+import flask
 import tempfile
 import os
 import json
@@ -17,11 +18,12 @@ from . import users
 from eve.auth import TokenAuth, requires_auth
 from .text.tools import load_transcript
 from .text.analyze import analyze_transcript
+from flask import current_app
+
 
 import io
 import uuid
 import mimetypes
-
 
 import logging
 
@@ -50,8 +52,6 @@ def list_type(schema):
 def ref_list(resource, embeddable=False):
     return list_type(ref(resource, embeddable=embeddable))
 
-
-#item_list = ref_list('entryitems', True)
 
 simple_string = {
     "type": "string"
@@ -227,7 +227,12 @@ settings = {
 class TokenAuthenticator(TokenAuth):
     def check_auth(self, token, allowed_roles, resource, method):
         users_db = app.data.driver.db["users"]
-        return users_db.find_one({"token": token}) is not None
+        user = users_db.find_one({"token": token})
+        if user is not None:
+            self.set_request_auth_value(user["username"])
+            return True
+        else:
+            return False
 
 
 FILES = "/home/spirali/projects/viadat/files"
@@ -754,6 +759,14 @@ def login():
         return jsonify(token)
     else:
         abort(400)
+
+
+@app.route('/logout', methods=['POST'])
+@requires_auth("sources")
+def logout():
+    user = flask.g.get("auth_value", None)
+    users.logout_user(app.data.driver.db, user)
+    return jsonify("Ok")
 
 
 def load_repository_config():

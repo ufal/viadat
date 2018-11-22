@@ -18,8 +18,13 @@ def create_new_user(db, username, password):
 
 def login_user(db, username, password):
     user = db["users"].find_one({"username": username})
-    print(user)
     if user and user["password"] == hash_password(password):
         token = str(uuid.uuid4().hex)
-        db["users"].update_one({"username": username}, {"$set": {"token": token}})
+        db["users"].update_one({"username": username},
+                               {"$set": {"token": token}})
         return token
+
+
+def logout_user(db, username):
+    db["users"].update_one({"username": username},
+                           {"$set": {"token": None}})

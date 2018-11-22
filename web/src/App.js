@@ -17,7 +17,7 @@ import {
 } from "react-router-dom";
 import { LinkContainer } from "react-router-bootstrap";
 import { AuthData } from "./services/utils";
-import { try_load_auth_data } from "./services/auth";
+import { try_load_auth_data, logout } from "./services/auth";
 import update from "react-addons-update";
 import Home from "./components/Home.js";
 import Entries from "./components/Entries.js";
@@ -50,12 +50,21 @@ const ProtectedRoute = ({ component: Component, ...rest }) => (
 class App extends Component {
   constructor() {
     super();
-    this.state = { username: null };
     try_load_auth_data();
+    if (AuthData.username) {
+      this.state = { username: AuthData.username };
+    } else {
+      this.state = { username: null }
+    }
   }
 
   afterLogin(username) {
     this.setState(update(this.state, { username: { $set: username } }));
+  }
+
+  logout = () => {
+    logout();
+    window.location.reload();
   }
 
   render() {
@@ -98,7 +107,7 @@ class App extends Component {
                   }
                 >
                   <MenuItem eventKey={3.1}>Profile</MenuItem>
-                  <MenuItem eventKey={3.2}>Logout</MenuItem>
+                  <MenuItem eventKey={3.2} onClick={this.logout}>Logout</MenuItem>
                 </NavDropdown>
               </Nav>
             )}

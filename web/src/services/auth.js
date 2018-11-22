@@ -18,3 +18,10 @@ export function try_load_auth_data() {
     AuthData.token = sessionStorage.getItem("authToken");
   }
 }
+
+export function logout() {
+  let promise = call_service_json("logout", {});
+  sessionStorage.setItem("authUsername", "");
+  sessionStorage.setItem("authToken", "");
+  return promise;
+}
