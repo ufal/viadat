@@ -93,9 +93,11 @@ class SourceItem extends Component {
   }
 
   removeSource = () => {
-    remove_source(this.props.source).then(() => {
-      this.props.entry.reload();
-    });
+    if (window.confirm("Remove source?")) {
+        remove_source(this.props.source).then(() => {
+        this.props.entry.reload();
+      });
+    }
   };
 
   render() {
@@ -187,9 +189,11 @@ class GroupItem extends Component {
   }
 
   onRemove = () => {
-    remove_group(this.props.group).then(() => {
-      this.props.entry.reload();
-    });
+    if (window.confirm("Remove group?")) {
+      remove_group(this.props.group).then(() => {
+        this.props.entry.reload();
+      });
+    }
   };
 
   render() {
@@ -312,9 +316,11 @@ class Entry extends Component {
   }
 
   onRemove = () => {
-    remove_entry(this.state.entry).then(() => {
-      this.props.history.push("/entries");
-    });
+    if (window.confirm("Remove entry?")) {
+     remove_entry(this.state.entry).then(() => {
+        this.props.history.push("/entries");
+      });
+    }
   };
 
   render() {
