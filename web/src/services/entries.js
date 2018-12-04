@@ -13,6 +13,10 @@ export function fetch_entry(entry_id) {
   return call_service_json("entries/" + entry_id);
 }
 
+export function update_entry(entry, update) {
+  return call_service("entries/" + entry._id, update, "PATCH", entry._etag);
+}
+
 export function create_entry(entry) {
   return call_service_json("entries", entry);
 }

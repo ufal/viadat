@@ -5,7 +5,11 @@ import {
   Glyphicon,
   ListGroup,
   ListGroupItem,
-  Table
+  Table,
+  FormControl,
+  FormGroup,
+  Modal,
+  ControlLabel
 } from "react-bootstrap";
 import { Link } from "react-router-dom";
 
@@ -24,10 +28,79 @@ import {
   update_group,
   update_source,
   upload_at_files,
-  upload_source_files
+  upload_source_files,
+  update_entry
 } from "../services/entries";
 import { Metadata } from "./Metadata";
 import { Upload } from "./Upload";
+
+
+class EntryNameDialog extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      name: props.entry.name
+    };
+  }
+
+  getValidationState() {
+    if (this.state.name.length > 1) {
+      return "success";
+    } else {
+      return "error";
+    }
+  }
+
+  render() {
+    let props = this.props;
+
+    return (
+      <Modal
+        show={props.show}
+        onHide={() => {
+          props.onClose();
+        }}
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Entry: {this.state.name}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <FormGroup
+            controlId="name"
+            validationState={this.getValidationState()}
+          >
+            <ControlLabel>Name</ControlLabel>
+            <FormControl
+              value={this.state.name}
+              onChange={e =>
+                this.setState({...this.state, name: e.target.value})
+              }
+            />
+          </FormGroup>
+
+          <Modal.Footer>
+            {this.state.message}{" "}
+            {this.props.onAutodetect && (
+              <Button disabled={this.disabled} onClick={this.autodetect}>
+                Autodetect
+              </Button>
+            )}
+            <Button
+              disabled={this.disabled}
+              onClick={() => {
+                this.props.onUpdate({name: this.state.name});
+                this.props.onClose();
+              }}
+            >
+              Update
+            </Button>
+          </Modal.Footer>
+        </Modal.Body>
+      </Modal>
+    );
+  }
+}
+
 
 const FileDownloadLink = props => (
   <a
@@ -262,7 +335,8 @@ class Entry extends Component {
       entry: null,
       sources: [],
       groups: [],
-      showAtUploadDialog: false
+      showAtUploadDialog: false,
+      showNameDialog: false,
     };
   }
 
@@ -323,14 +397,26 @@ class Entry extends Component {
     }
   };
 
+  onNameUpdate = (update) => {
+    update_entry(this.state.entry, update).then(() => {
+      this.setState({...this.state, entry: {...this.state.entry, name: update.name}});
+    })
+  }
+
   render() {
     return (
       <div>
         {this.state.entry && (
           <div>
-            <h1>{this.state.entry.name}</h1>
-            <h2>Source items</h2>
+            <EntryNameDialog
+                show={this.state.showNameDialog}
+                entry={this.state.entry}
+                onUpdate={this.onNameUpdate}
+                onClose={() => this.setState({...this.state, showNameDialog: false})}
+            />
+            <h1>{this.state.entry.name}</h1><Button onClick={() => this.setState({...this.state, showNameDialog: true})}>Edit</Button>
 
+            <h2>Source items</h2>
             <p>
               <Button onClick={() => this.newSourceItem()}>
                 New source item
