@@ -56,16 +56,22 @@ class Export extends Component {
     return (
       <div>
         <h1>Export</h1>
-        <h2>Ready sources</h2>
+        {this.state.readySources.length > 0 && <h2>Ready sources</h2>}
         <ul>
           {this.state.readySources.map(s => (
             <li key={s._id}>{s.metadata.dc_title}</li>
           ))}
+        </ul>
+
+        {this.state.readyGroups.length > 0 && <h2>Ready groups</h2>}
+        <ul>
           {this.state.readyGroups.map(s => (
             <li key={s._id}>{s.metadata.dc_title}</li>
           ))}
         </ul>
-        <Button onClick={() => this.onExport()}>Run export</Button>{" "}
+        { this.state.readySources.length == 0 && this.state.readyGroups.length == 0 && <p><i>Nothing to export</i></p>}
+
+        <Button disabled={this.state.readySources.length == 0 && this.state.readyGroups.length == 0} onClick={() => this.onExport()}>Run export</Button>{" "}
         {this.state.statusText}
       </div>
     );
