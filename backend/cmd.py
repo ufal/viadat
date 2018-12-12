@@ -36,7 +36,6 @@ def parse_args():
 def analyze(path):
     path = os.path.abspath(path)
     extract_info(path)
-    #  analyze_transcript(transcript))
 
 
 def import_entry(db, items, name):
@@ -49,16 +48,6 @@ def import_entry(db, items, name):
         print("Analyzing ...")
         transcript = analyze_transcript(transcript)
         transcripts.append(transcript)
-
-    #if args.audio:
-    #    print("Force alignment ...")
-    #    audio_path = os.path.abspath(args.audio)
-    #    transcript = force_alignment(transcript)
-    #else:
-    #    audio_path = None
-    #print("BEGIN")
-    #print(et.tostring(transcript, pretty_print=True).decode())
-    #print("END")
 
     entry = db.entries.insert({"name": name})
 

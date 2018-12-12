@@ -78,6 +78,9 @@ def extract_header(elements, builder):
 
 
 def extract_dialog_trascript(filename):
+    """
+    This method takes a ODT document and returns parsed transcript
+    """
     with open(filename, 'rb') as stream:
         stream = zipfile.ZipFile(stream)
         content = et.fromstring(stream.read("content.xml"))

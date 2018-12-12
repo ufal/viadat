@@ -46,19 +46,12 @@ export class Upload extends Component {
   }
 
   onUpload() {
-    /*let p = Promise.resolve();
-    for (let f of this.state.files) {
-      p = p.then(() => this.props.onUpload(f));
-    }*/
-    //return p;
     this.setState(update(this.state, { uploading: { $set: true } }));
     this.props.onUpload(this.state.files);
   }
 
   render() {
     let props = this.props;
-    //<FormControl id="fileInput" onChange={this.handleChange} value={this.state.text} type="file"/>
-    //<FormControl multiple type="file" onChange={(e) => this.addFile(e.target.files)}/>
     return (
       <Modal
         show={props.show}

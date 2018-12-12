@@ -1,3 +1,7 @@
+"""
+This is the main backend module that controls whole REST service
+"""
+
 from eve import Eve
 from .fs.filestore import store, filename, load, filesize, compute_hash
 from .audio import cut
@@ -31,6 +35,7 @@ REPOSITORY_SETTINGS = None
 
 
 def ref(resource, embeddable=False, required=False):
+    """ Create reference on resource """
     return {
         'type': 'objectid',
         'data_relation': {
@@ -43,6 +48,7 @@ def ref(resource, embeddable=False, required=False):
 
 
 def list_type(schema):
+    """ Create list of given schema """
     return {
         'type': 'list',
         'schema': schema
@@ -74,6 +80,16 @@ required_string = {
 entries_schema = {
     'name': required_string
 }
+
+
+# In metada, we are using "_" as separator instead of ".",
+# E.g. "dc_title" instead of "dc.title".
+# Dots are not supported in older versions of Eve
+# "_" are replaced by "." during export
+
+# When you add something here, you should update
+# "repo_known_names" that controls what is acutally
+# exported to repo
 
 metadata_type = {
     'type': 'dict',
@@ -128,36 +144,6 @@ transcripts_schema = {
         }
     }
 }
-
-"""
-entryitems_schema = {
-    'entry_id': {
-         'type': 'objectid',
-         'data_relation': {
-             'resource': 'entries',
-             'field': '_id',
-             'embeddable': True
-         },
-         'required': 'true'
-    },
-
-    'name': simple_string,
-
-    'kind': {
-        'type': 'string',
-        'readonly': 'true'
-    },
-
-    'origin': {
-        'type': 'string',
-        'readonly': 'true'
-    },
-
-    'references': {
-        'type': 'list',
-     },
-}
-"""
 
 labelcategory_schema = {
     'name': required_string,
@@ -357,38 +343,7 @@ def get_audio(item_id, begin, end):
 def transcript_download(transcript_id, filename):
     data = generate_labelfile(transcript_id)
     return Response(data, mimetype="text/xml")
-"""
-@app.route('/run/<item_id>/align')
-@requires_auth("sources")
-def run_transcript(item_id):
-    items = app.data.driver.db["entryitems"]
-    transcript_item = items.find_one({"_id": ObjectId(item_id)})
-    assert transcript_item  # TODO 404
 
-    audio_id = None
-
-    for item in transcript_item["references"]:
-        if item["type"] == "audio":
-            audio_id = item["item_id"]
-
-    if not audio_id:
-        return "No audio item found"
-
-    audio_item = items.find_one({"_id": audio_id})
-
-    audio_file = filename(str(audio_id))
-
-    with load(item_id) as f:
-        transcript = et.parse(f).getroot()
-
-    transcript = force_alignment(
-        transcript, audio_file, audio_item["file_type"])
-
-    with store(item_id) as f:
-        f.write(et.tostring(transcript))
-
-    return str("Ok")
-"""
 
 exts = {
     ".doc": "doc",
@@ -397,6 +352,7 @@ exts = {
     ".wmv": "audio",
     ".wav": "audio"
 }
+
 
 repo_known_names = ["dc_title",
                     "viadat_narrator_name"]
