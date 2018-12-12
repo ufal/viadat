@@ -77,3 +77,13 @@ The following figure shows the main entities occuring in Viadat:
 - *files/* -- Default location where to store files
 
 - *tools/* -- Helpler utilities
+
+
+## Phases of creation of Transcript from Source
+
+- Original document (.docx)
+- Coversion to .odt [soffice]
+- Extraction to transcript (xml) [viadat code]
+- Morphological analysis [morphodita], result saved into transcript
+- Force-alignment [aeneas], results saved into transcript
+
