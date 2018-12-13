@@ -1,6 +1,14 @@
-# Docker for *DEV* version of Viadat
-# Make sure that repository.conf exists 
+#            /-----\
+# Docker for | DEV | version of Viadat
+#            \-----/
+#
+# Make sure that repository.conf exists
 # before building the docker image
+# Format of repository.conf is described
+# in docs/install.md
+
+# Web front end runs at port 3000
+# There should be user "test" with password "test"
 
 FROM ubuntu:18.04
 
