@@ -16,6 +16,17 @@ def create_new_user(db, username, password):
     })
 
 
+def remove_user(db, username):
+    db["users"].remove({
+        "username": username,
+    })
+
+
+def reset_password(db, username, password):
+    db["users"].update({"username": username},
+                       {"password": hash_password(password)})
+
+
 def login_user(db, username, password):
     user = db["users"].find_one({"username": username})
     if user and user["password"] == hash_password(password):

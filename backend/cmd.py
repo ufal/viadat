@@ -25,6 +25,13 @@ def parse_args():
     p.add_argument('username', metavar='USERNAME')
     p.add_argument('--password', metavar='PASSWORD')
 
+    p = subparsers.add_parser("remove-user")
+    p.add_argument('username', metavar='USERNAME')
+
+    p = subparsers.add_parser("reset-password")
+    p.add_argument('username', metavar='USERNAME')
+    p.add_argument('--password', metavar='PASSWORD')
+
     p = subparsers.add_parser("analyze")
     p.add_argument('doc', metavar='FILENAME')
 
@@ -165,6 +172,16 @@ def main():
         else:
             password = getpass.getpass()
         users.create_new_user(db, args.username, password)
+    elif args.command == "remove-user":
+        db = connect_to_db()
+        users.remove_user(db, args.username)
+    elif args.command == "reset-password":
+        db = connect_to_db()
+        if args.password is not None:
+            password = args.password
+        else:
+            password = getpass.getpass()
+        users.reset_password(db, args.username, password)
     elif args.command == "analyze":
         analyze(args.doc)
     elif args.command == "import-dir":
