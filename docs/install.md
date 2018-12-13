@@ -14,10 +14,14 @@ $ cd backend
 $ pip3 install -r requirements.txt
 ```
 
+NOTE: Backend connects to service of http://ufal.mff.cuni.cz/morphodita for
+morpohological analysis, hence the backend has to be able to access this service
+during importing documents
+
 ## Repository configuration
 
-Create file "repository.conf" in viadat root directory with configuration
-for repository in the following format:
+Create file "repository.conf" in viadat root directory with configuration for
+repository in the following format:
 
 ```
 {
@@ -50,7 +54,8 @@ $ python3 -m backend service
 
 Setup hostname where backend runs in `web/src/config.js`.
 
-The following commands build web application that should be statically served by a web server
+The following commands build web application that should be statically served by
+a web server
 
 ```
 $ cd web

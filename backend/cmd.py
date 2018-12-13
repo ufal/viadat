@@ -113,7 +113,6 @@ def find_matching_file(name, extensions, filenames):
     for name in filenames:
         lname = name.lower()
         for ext in extensions:
-            print("LNAME", lname, base, ext)
             if base + ext == lname:
                 return name
 
@@ -133,9 +132,7 @@ def import_dir(path):
     for (dirpath, _, filenames) in os.walk(path):
         data = []
         for doc in sorted(filter_by_ext(filenames, doc_exts)):
-            print(doc)
             audio = find_matching_file(doc, audio_exts, filenames)
-            print(audio)
             if audio:
                 data.append((os.path.join(dirpath, doc), os.path.join(dirpath, audio)))
         if data:

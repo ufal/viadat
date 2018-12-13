@@ -12,8 +12,11 @@ import lxml.etree as et
 
 
 def force_alignment(transcript, audio_file, extension):
+    """ Force align a transcript according an audio file.
+        The transcript has to be processed by morphodita before
+        calling this function, result is stored back into the
+        transcript """
     def inner(tmp_dir):
-        print(extension)
         os.symlink(audio_file, "audio" + extension)
         input_file = os.path.join(tmp_dir, "input.txt")
         output_file = os.path.join(tmp_dir, "output.json")
