@@ -19,9 +19,13 @@ RUN apt-get update && apt-get install -y \
     git \
     mongodb \
     nodejs \
-    npm
+    npm \
+    sox \
+    libespeak-dev
 
-RUN pip3 install requests numpy
+# numpy has to be explicitly installed before aeneas
+RUN pip3 install numpy requests
+RUN pip3 install aeneas
 
 RUN git clone --depth=1 https://github.com/ufal/pyclarindspace && \
     cd pyclarindspace && \
