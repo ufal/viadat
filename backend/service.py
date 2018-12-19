@@ -88,7 +88,8 @@ entries_schema = {
 # "_" are replaced by "." during export
 
 # When you add something here, you should update
-# "repo_known_names" that controls what is acutally
+# "repo_known_names" (in this file)
+# that controls what is actually
 # exported to repo
 
 metadata_type = {
@@ -111,8 +112,12 @@ sources_schema = {
         'schema': {
             'type': 'dict',
             'schema': {
+                # File name
                 'name': required_string,
+                # Size in bytes
                 'size': required_int,
+                # hash is used to link files together during
+                # the import
                 'hash': required_string,
             }
         }
@@ -148,6 +153,8 @@ transcripts_schema = {
 labelcategory_schema = {
     'name': required_string,
     'parent': ref("labelcategories"),
+
+    # Colors for highliting in documents (not used now)
     'color': simple_string,
     'bgcolor': simple_string,
 }
@@ -164,12 +171,16 @@ labels_schema = {
 labelinstance_schema = {
     'label': ref('labels', required=True, embeddable=True),
     'transcript': ref('transcripts', required=True, embeddable=True),
+    # ID of paragraph
     'paragraph': required_int,
+    # Character in paragraph where label starts
     'from': required_int,
+    # Character in paragraph where label ends (non-inclusive)
     'to': required_int,
 }
 
 lemmas_schema = {
+    # Lemma in form how Morphodita returns it
     'value': simple_string,
     'transcripts': ref_list('transcripts', True),
 }
@@ -227,6 +238,7 @@ CORS(app)
 
 
 def category_subtree(category):
+    """ Returns list of all categories that are recursively under the category """
     category_db = app.data.driver.db["labelcategories"]
     subcats = category_db.find({"parent": category["_id"]})
     result = [category["_id"]]
@@ -245,7 +257,6 @@ app.on_delete_item_labels += on_delete_label
 
 def on_delete_labelcategories(item):
     categories = category_subtree(item)
-    print("DELETING", categories)
     label_db = app.data.driver.db["labels"]
     labels = [label["_id"]
               for label in label_db.find({"parent": {"$in": categories}})]

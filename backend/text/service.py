@@ -1,6 +1,7 @@
 import requests
 import time
 
+
 def safe_post(url, data):
     for i in range(10):
         r = requests.post(url, data=data)
@@ -13,6 +14,8 @@ def safe_post(url, data):
 
 
 class Service:
+
+    """ Caching class for REST service """
 
     def __init__(self):
         self.cache = {}

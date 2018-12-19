@@ -9,6 +9,7 @@ from .transcript import get_tokens
 from .nametag import canonize_tag
 from .service import safe_post
 
+
 def validate_tokenizer(element):
     for sentence in element:
         if sentence.attrib or sentence.tag != "sentence":
@@ -23,6 +24,7 @@ def validate_tokenizer(element):
 
 
 def get_lemmas(string):
+    """ Connects Morphidata and returns lemmas in the input string """
     r = safe_post(
              "http://lindat.mff.cuni.cz/services/morphodita/api/tag",
              {"data": string}).json()
@@ -32,6 +34,7 @@ def get_lemmas(string):
 
 
 def insert_lemmas(transcript):
+    """ Insert lemmas into transcript """
     sections = transcript.find("sections")
     for p in transcript.find("body").iter("p"):
         text = p.text
@@ -60,6 +63,7 @@ def insert_lemmas(transcript):
 
 
 def element_offset(element):
+    """ Get offset of element, counted from zero """
     parent = element.getparent()
     if parent is None:
         return 0
@@ -70,6 +74,7 @@ def element_offset(element):
 
 
 def insert_name_tags(transcript):
+    """ Insert tags from NameTag into transcript """
     sections = transcript.find("sections")
     for p in transcript.find("body").iter("p"):
         r = safe_post(
@@ -97,6 +102,7 @@ def insert_name_tags(transcript):
 
 
 def tokenize(transcript):
+    """ Tokenize each paragraph in transcript """
     body = transcript.find("body")
     assert body is not None
     sections = transcript.find("sections")
@@ -131,6 +137,7 @@ def tokenize(transcript):
 
 
 def analyze_transcript(transcript):
+    """ Top-level method; it tokenizes and inserts lemma into transcript """
     tokenize(transcript)
     insert_lemmas(transcript)
     # insert_name_tags(transcript)

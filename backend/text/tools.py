@@ -7,6 +7,7 @@ from . import extract
 
 
 def load_transcript(filename):
+    """ Create a transcript from .doc document """
     cwd = os.getcwd()
     filename = os.path.abspath(filename)
     tmp_dir = tempfile.mkdtemp()
