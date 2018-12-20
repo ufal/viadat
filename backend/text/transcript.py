@@ -1,5 +1,6 @@
 def get_sections(transcript, name):
-    paragraphs = dict((p.get("id"), p) for p in transcript.find("body").iter("p"))
+    paragraphs = {p.get("id"): p
+                  for p in transcript.find("body").iter("p")}
     for s in transcript.find("sections").findall(name):
         yield paragraphs[s.get("p")].text[int(s.get("from")):int(s.get("to"))]
 

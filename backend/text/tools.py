@@ -37,4 +37,3 @@ def extract_info(filename):
     finally:
         os.chdir(cwd)
         shutil.rmtree(tmp_dir)
-

@@ -1,6 +1,5 @@
 import argparse
 import os.path
-import json
 import getpass
 
 from . import users
@@ -8,7 +7,6 @@ from .text.tools import load_transcript, extract_info
 from .text.analyze import analyze_transcript
 from .audio.fa import force_alignment
 from .fs.filestore import store, copy_to_store
-from .utils.xml import to_json
 from lxml import etree as et
 from .text.index import index_lemmas, index_nametags
 
@@ -16,7 +14,8 @@ from pymongo import MongoClient
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Command line tool for viadat')
+    parser = argparse.ArgumentParser(
+        description='Command line tool for viadat')
     subparsers = parser.add_subparsers(help='Command', dest="command")
 
     p = subparsers.add_parser("service")
@@ -141,7 +140,8 @@ def import_dir(path):
         for doc in sorted(filter_by_ext(filenames, doc_exts)):
             audio = find_matching_file(doc, audio_exts, filenames)
             if audio:
-                data.append((os.path.join(dirpath, doc), os.path.join(dirpath, audio)))
+                data.append((os.path.join(dirpath, doc),
+                             os.path.join(dirpath, audio)))
         if data:
             name = os.path.basename(
                 os.path.commonprefix([d[0] for d in data]).strip())
@@ -151,11 +151,11 @@ def import_dir(path):
 
     db = connect_to_db()
     for name, data in entry_paths:
-        #try:
+        #  try:
             import_entry(db, data, name)
-        #except Exception as e:
-        #    print("Importing {} failed".format(name))
-        #    print(e)
+        #  except Exception as e:
+        #      print("Importing {} failed".format(name))
+        #      print(e)
     print(entry_paths)
 
 

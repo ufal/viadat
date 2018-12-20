@@ -3,7 +3,7 @@ This module serves for extracting trascript from ODT document
 """
 
 from lxml import etree as et
-from ..utils.xml import element_to_text, elements_to_text, remove_and_preserve_tail
+from ..utils.xml import element_to_text
 import zipfile
 import re
 

@@ -22,7 +22,6 @@ from . import users
 from eve.auth import TokenAuth, requires_auth
 from .text.tools import load_transcript
 from .text.analyze import analyze_transcript
-from flask import current_app
 
 
 import io
@@ -238,7 +237,8 @@ CORS(app)
 
 
 def category_subtree(category):
-    """ Returns list of all categories that are recursively under the category """
+    """ Returns list of all categories that are recursively
+        under the category """
     category_db = app.data.driver.db["labelcategories"]
     subcats = category_db.find({"parent": category["_id"]})
     result = [category["_id"]]
@@ -319,7 +319,6 @@ def lemmatize():
 
 
 @app.route('/download/<uid>')
-#@requires_auth("sources")
 def download_item(uid):
     filename = os.path.join(FILES, uid)
     if "begin" in request.args and "end" in request.args:
@@ -330,7 +329,6 @@ def download_item(uid):
 
 
 @app.route('/download/<uid>/<filename>')
-#@requires_auth("sources")
 def download_item2(uid, filename):
     return app.send_static_file(uid)
 
@@ -344,7 +342,6 @@ def download_xml_as_json(uid):
 
 
 @app.route('/audio/<item_id>/<float:begin>-<float:end>')
-#@requires_auth("sources")
 def get_audio(item_id, begin, end):
     size = end - begin
     return cut.cut(os.path.join(FILES, item_id), begin, size)
@@ -443,7 +440,8 @@ def source_autodetect(source_id):
 
     result = {
         "dc_title": properties.get("přepis rozhovoru"),
-        "viadat_narrator_name": cleanup(properties.get("jméno a příjmení narátora/ky"))
+        "viadat_narrator_name":
+            cleanup(properties.get("jméno a příjmení narátora/ky"))
     }
 
     return jsonify(result)
@@ -611,10 +609,12 @@ def upload_at(entry_id):
                 }
             }
             transcript_id = ts_db.insert_one(t_item).inserted_id
-            lemmas = set(lemma.get("value") for lemma in transcript.iter("lemma"))
+            lemmas = set(lemma.get("value")
+                         for lemma in transcript.iter("lemma"))
             for lemma in lemmas:
                 lemma_db.update({"value": lemma},
-                                {"$push": {"transcripts": transcript_id}}, True)
+                                {"$push": {"transcripts": transcript_id}},
+                                True)
 
             label_filename = upload_file.filename[:-4] + ".labels.xml"
             label_files = [fl for fl in files if fl.filename == label_filename]
@@ -629,8 +629,10 @@ def upload_at(entry_id):
 
             for label_data in label_root.findall("label"):
                 logging.info("Importing label %s in %s",
-                             label_data.get("name"), label_data.get("category"))
-                category_id = find_or_create_category(label_data.get("category"))
+                             label_data.get("name"),
+                             label_data.get("category"))
+                category_id = find_or_create_category(
+                    label_data.get("category"))
                 label_id = find_or_create(
                     labels_db, {"name": label_data.get("name"),
                                 "parent": category_id})

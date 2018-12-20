@@ -1,6 +1,7 @@
 from .service import Service
 import itertools
 
+
 class Tag:
 
     def __init__(self, tag_string):
@@ -62,7 +63,9 @@ class TaggedWord:
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
-            return self.word == other.word and self.tag == other.tag and self.lemma == self.lemma
+            return self.word == other.word and \
+                    self.tag == other.tag and \
+                    self.lemma == self.lemma
         else:
             return False
 
@@ -72,20 +75,25 @@ class TaggedWord:
     def __hash__(self):
         return hash(self.word) ^ hash(self.tag) ^ hash(self.lemma)
 
+
 def parse_tag_line(line):
     parts = line.split()
     return TaggedWord(parts[0], parts[1], Tag(parts[2]))
 
+
 def parse_generate_line(line, lemma):
     parts = line.split()
-    forms = [TaggedWord(parts[i], lemma, Tag(parts[i+2])) for i in range(0, len(parts), 3)]
+    forms = [TaggedWord(parts[i], lemma, Tag(parts[i+2]))
+             for i in range(0, len(parts), 3)]
     return forms
+
 
 def generate(service, lemma):
     r = service.post(
         "http://lindat.mff.cuni.cz/services/morphodita/api/generate",
         {"data": lemma, "output": "vertical"}).json()
-    return [parse_generate_line(line, lemma) for line in r["result"].split("\n") if line]
+    return [parse_generate_line(line, lemma)
+            for line in r["result"].split("\n") if line]
 
 
 def synchronize_word(service, word, model):
@@ -96,11 +104,11 @@ def synchronize_word(service, word, model):
 
     return [w for w in forms
             if w.tag.case == "1"
-                and w.tag.tag_string[:2] == word.tag.tag_string[:2]
-                and w.tag.tag_string[5:-1] == word.tag.tag_string[5:-1]
-                and w.tag.tag_string[-1] == "-"
-                and w.tag.number == model.tag.number
-                and w.tag.gender == model.tag.gender]
+            and w.tag.tag_string[:2] == word.tag.tag_string[:2]
+            and w.tag.tag_string[5:-1] == word.tag.tag_string[5:-1]
+            and w.tag.tag_string[-1] == "-"
+            and w.tag.number == model.tag.number
+            and w.tag.gender == model.tag.gender]
 
 
 def basic_form_of_noun(service, word):
@@ -131,9 +139,9 @@ def canonize_tag(string, debug_info=False):
     # If verb or no nouns
     if all(not w.is_noun() for w in words):
         return (string,)
-        #return " ".join(w for w in words)
 
-    head_noun_idx, head_noun = next((i, w) for i, w in enumerate(words) if w.is_noun())
+    head_noun_idx, head_noun = \
+        next((i, w)for i, w in enumerate(words) if w.is_noun())
 
     # Check that all words before head noun are adjectives
     if not all(w.is_adjective() for w in words[:head_noun_idx]):
@@ -152,9 +160,11 @@ def canonize_tag(string, debug_info=False):
     basic_form = basic_form_of_noun(service, head_noun)
     if basic_form:
         final_forms = []
-        final_forms += [synchronize_word(service, w, basic_form) for w in words[:head_noun_idx]]
+        final_forms += [synchronize_word(service, w, basic_form)
+                        for w in words[:head_noun_idx]]
         final_forms.append((basic_form,))
-        final_forms += [synchronize_word(service, w, basic_form) for w in words[head_noun_idx+1:suffix_start_idx]]
+        final_forms += [synchronize_word(service, w, basic_form)
+                        for w in words[head_noun_idx+1:suffix_start_idx]]
         for p in itertools.product(*final_forms):
             for w, original in zip(p, words):
                 w.fix_uppercase(original.word)
@@ -163,7 +173,8 @@ def canonize_tag(string, debug_info=False):
                 value += " " + suffix
             if debug_info:
                 if suffix:
-                    value += " ({} suffix: {})".format(" ".join(map(repr, p)), suffix)
+                    value += " ({} suffix: {})".format(
+                        " ".join(map(repr, p)), suffix)
                 else:
                     value += " ({})".format(" ".join(map(repr, p)))
             results.append(value)

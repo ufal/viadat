@@ -1,11 +1,6 @@
 import lxml.etree as et
-import requests
-import time
-import collections
-import itertools
 
-from ..utils.xml import traverse, traverse_map, clone_element, element_to_text, elements_to_text
-from .transcript import get_tokens
+from ..utils.xml import element_to_text, elements_to_text
 from .nametag import canonize_tag
 from .service import safe_post
 
@@ -17,9 +12,6 @@ def validate_tokenizer(element):
         for token in sentence:
             if token.attrib or token.tag != "token":
                 return token
-            #for analysis in token:
-            #    if analysis.tag != "analysis":
-            #        return analysis
     return None
 
 
@@ -88,9 +80,6 @@ def insert_name_tags(transcript):
             offset = element_offset(e)
             end = offset + len(value)
 
-            #with open("/home/spirali/tags", "a") as f:
-            #    f.write(e.get("type") + " " + value + "\n")
-
             for value in canonize_tag(value):
                 element = et.Element("nametag")
                 element.set("p", p.get("id"))
@@ -112,9 +101,9 @@ def tokenize(transcript):
         p_id = p.get("id")
         offset = 0
         r = safe_post(
-                    #"http://lindat.mff.cuni.cz/services/morphodita/api/analyze",
-                    "http://lindat.mff.cuni.cz/services/morphodita/api/tokenize",
-                    {"data": p.text}).json()
+            #  "http://lindat.mff.cuni.cz/services/morphodita/api/analyze",
+            "http://lindat.mff.cuni.cz/services/morphodita/api/tokenize",
+            {"data": p.text}).json()
         xml = "<response>{}</response>".format(r["result"])
         response = et.fromstring(xml)
         for s in response.iter("sentence"):
