@@ -14,6 +14,7 @@ import {
   Panel
 } from "react-bootstrap";
 import DatePicker from "react-datepicker";
+import { CirclePicker } from 'react-color';
 
 import {
   create_label,
@@ -37,7 +38,7 @@ let LabelItem = props => {
 class CategoryEditor extends Component {
   constructor(props) {
     super(props);
-    this.initState = { category: { name: "" } };
+    this.initState = { category: { name: "", color: "" } };
     this.state = this.initState;
   }
 
@@ -55,6 +56,10 @@ class CategoryEditor extends Component {
       this.props.onSubmit(this.state.category);
       this.reset();
     }
+  }
+
+  onColorChange = (value) => {
+    this.setState({...this.state, category: {...this.state.category, color: value.hex}});
   }
 
   render() {
@@ -77,6 +82,11 @@ class CategoryEditor extends Component {
             />
             <FormControl.Feedback />
           </FormGroup>
+          <FormGroup>
+            <ControlLabel>Category color</ControlLabel>
+              <CirclePicker onChangeComplete={this.onColorChange} color={this.state.category.color}/>
+          </FormGroup>
+
           <Button
             bsStyle="primary"
             type="submit"
@@ -273,7 +283,8 @@ class LabelCategory extends Component {
 
   render() {
     let node = this.props.node;
-    let style = { backgroundColor: node.bg_color, color: node.color };
+    //let style = { backgroundColor: node.bg_color, color: node.color };
+    let style = {};
     return (
       <ListGroupItem style={style}>
         <a role="button" onClick={() => this.toggle()}>
@@ -282,6 +293,12 @@ class LabelCategory extends Component {
           />{" "}
           {node.name}
         </a>
+        {node.color && node.color.length > 0 &&
+          <svg style={{marginLeft: "0.5em"}} width="1em" height="1em">
+            <rect x="0" y="0" width="1em" height="1em" style={{fill: node.color}}/>
+          </svg>
+        }
+
         {this.state.showChilds && (
           <DropdownButton
             bsSize="xsmall"
