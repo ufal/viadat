@@ -31,7 +31,8 @@ def force_alignment(transcript, audio_file, extension):
             "-m", "aeneas.tools.execute_task",
             "audio" + extension, input_file,
             "task_language=ces|os_task_file_format=json|is_text_type=plain",
-            output_file))
+            output_file),
+            stderr=subprocess.STDOUT)
 
         with open(output_file) as f:
             output = json.load(f)

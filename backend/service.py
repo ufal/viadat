@@ -674,9 +674,13 @@ def create_at(source_id):
     for doc, audio in zip(docs, audios):
         transcript = load_transcript(filename(doc["uuid"]))
         transcript = analyze_transcript(transcript)
-        transcript = force_alignment(
-            transcript, filename(audio["uuid"]), "mp3")
-
+        try:
+            transcript = force_alignment(
+                transcript, filename(audio["uuid"]), "mp3")
+        except Exception as e:
+            logging.error(e)
+            return jsonify("Force alignment of {}/{} failed"
+                           .format(doc["name"], audio["name"]))
         element = et.Element("audio")
         element.set("hash", audio["hash"])
         element.set("handle", source["metadata"]["handle"])
