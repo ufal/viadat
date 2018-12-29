@@ -210,6 +210,18 @@ class MetadataDialog extends Component {
             </FormControl>
           </FormGroup>
 
+          <FormGroup>
+            <ControlLabel>Language (if set incorectly, then force alignment will be incorrect)</ControlLabel>
+            <FormControl
+              componentClass="select"
+              value="cs">
+              <option value="cs">
+                Czech
+              </option>
+            </FormControl>
+          </FormGroup>
+
+
           <Modal.Footer>
             {this.state.message}{" "}
             {this.props.onAutodetect && (
