@@ -82,7 +82,7 @@ export function fetch_transcripts(group_id) {
 }
 
 export function create_transcription(source_id) {
-  return call_raw_service("create-at/" + source_id);
+  return call_service_json("create-at/" + source_id);
 }
 
 export function fetch_transcript(transcript_id) {

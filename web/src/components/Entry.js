@@ -154,14 +154,13 @@ class SourceItem extends Component {
   createAt() {
     this.setState(update(this.state, { message: { $set: "Creating ..." } }));
     create_transcription(this.props.source._id).then(e => {
-      if (e.status === 200) {
-        this.setState(update(this.state, { message: { $set: "Created" } }));
+      console.log(e);
+        this.setState(update(this.state, { message: { $set: e } }));
         this.props.entry.reload();
-      } else {
-        this.setState(
-          update(this.state, { message: { $set: "Failed: " + e.statusText } })
-        );
-      }
+    }, e => {
+      this.setState(
+        update(this.state, { message: { $set: "Failed: " + e.statusText } })
+      );
     });
   }
 

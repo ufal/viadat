@@ -424,6 +424,7 @@ def source_autodetect(source_id):
     assert source  # TODO 404
 
     docs = [f for f in source["files"] if f["kind"] == "doc"]
+
     if not docs:
         return jsonify({"error": "No source document found"})
 
@@ -660,7 +661,11 @@ def create_at(source_id):
     docs = [f for f in source["files"] if f["kind"] == "doc"]
     audios = [f for f in source["files"] if f["kind"] == "audio"]
 
-    assert len(docs) == len(audios)
+    if not docs:
+        return jsonify("Error: No documents")
+
+    if len(docs) != len(audios):
+        return jsonify("Error: Number of audio files does not match documents")
 
     docs.sort(key=lambda f: f["name"])
     audios.sort(key=lambda f: f["name"])
@@ -712,7 +717,7 @@ def create_at(source_id):
             lemma_db.update({"value": lemma},
                             {"$push": {"transcripts": transcript_id}}, True)
 
-    return "Ok"
+    return jsonify("Ok")
 
 
 @app.route('/login', methods=['POST'])
