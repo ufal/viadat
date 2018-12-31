@@ -46,8 +46,11 @@ export class Upload extends Component {
   }
 
   onUpload() {
-    this.setState(update(this.state, { uploading: { $set: true } }));
-    this.props.onUpload(this.state.files);
+    var files = this.state.files;
+    this.setState({...this.state, files: [], uploading: true });
+    this.props.onUpload(files).then(() => {
+        this.setState({...this.state, uploading: false });
+    })
   }
 
   render() {
@@ -56,6 +59,7 @@ export class Upload extends Component {
       <Modal
         show={props.show}
         onHide={() => {
+          this.setState({...this.state, files: [], uploading: false });
           props.onClose();
         }}
       >
