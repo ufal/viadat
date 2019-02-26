@@ -7,8 +7,11 @@
 # Format of repository.conf is described
 # in docs/install.md
 
+# run docker-compose up if the container is not built yet
+
 # Web front end runs at port 3000
 # There should be user "test" with password "test"
+
 
 FROM ubuntu:18.04
 
