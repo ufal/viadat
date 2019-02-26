@@ -1,0 +1,10 @@
+version: '3'
+services:
+  web:
+    container_name: viadat
+    build: .
+
+    # we want to mount the source files, but avoid overwriting the directory with installed npm modules
+    volumes:
+      - ./:/viadat
+      - /viadat/web/node_modules
