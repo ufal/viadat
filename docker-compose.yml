@@ -3,8 +3,17 @@ services:
   web:
     container_name: viadat
     build: .
+    ports:
+      - 3000:3000
 
     # we want to mount the source files, but avoid overwriting the directory with installed npm modules
     volumes:
-      - ./:/viadat
-      - /viadat/web/node_modules
+      - ./backend:/viadat/backend
+      - ./web/public:/viadat/web/public
+      - ./web/src:/viadat/web/src
+      - node_modules:/viadat/web/node_modules
+      - mongodb:/db
+ 
+volumes:
+  mongodb:
+  node_modules:
