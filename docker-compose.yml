@@ -5,6 +5,8 @@ services:
     build: .
     ports:
       - 3000:3000
+    dns:
+      - 8.8.8.8
 
     # we want to mount the source files, but avoid overwriting the directory with installed npm modules
     volumes:
@@ -13,6 +15,7 @@ services:
       - ./web/src:/viadat/web/src
       - node_modules:/viadat/web/node_modules
       - mongodb:/db
+      - ./files:/viadat/files
  
 volumes:
   mongodb:
