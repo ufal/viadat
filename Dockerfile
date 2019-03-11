@@ -36,12 +36,16 @@ RUN git clone --depth=1 https://github.com/ufal/pyclarindspace && \
 
 WORKDIR /viadat
 
+# Hack, so Docker doesn't install npm/pip packages every time the image is rebuilt
+# https://medium.com/@aidobreen/using-docker-dont-forget-to-use-build-caching-6e2b4f43771e
+
+COPY /web/package.json /viadat/web/package.json
+RUN cd /viadat/web; npm install --no-optional --silent
+
+COPY /backend/requirements.txt /viadat/backend/requirements.txt
+RUN cd /viadat/backend; pip3 install -r requirements.txt
+
 COPY . /viadat
-
-RUN cd backend && pip3 install -r requirements.txt
-
-
-RUN cd web && npm install --no-optional
 
 EXPOSE 3000
 EXPOSE 5000

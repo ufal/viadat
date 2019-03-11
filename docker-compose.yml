@@ -16,7 +16,7 @@ services:
       - node_modules:/viadat/web/node_modules
       - mongodb:/db
       - ./files:/viadat/files
- 
+
 volumes:
   mongodb:
   node_modules:
