@@ -24,7 +24,8 @@ RUN apt-get update && apt-get install -y \
     nodejs \
     npm \
     sox \
-    libespeak-dev
+    libespeak-dev \
+    ffmpeg
 
 # numpy has to be explicitly installed before aeneas
 RUN pip3 install numpy requests
