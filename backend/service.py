@@ -231,7 +231,8 @@ class TokenAuthenticator(TokenAuth):
             return False
 
 
-FILES = "/home/spirali/projects/viadat/files"
+
+FILES = os.environ["STATIC_FILES"]
 app = Eve(settings=settings, static_folder=FILES, auth=TokenAuthenticator)
 CORS(app)
 

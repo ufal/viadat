@@ -6,6 +6,7 @@ services:
     environment:
     - LC_ALL=C.UTF-8
     - LANG=C.UTF-8
+    - STATIC_FILES=/viadat/files
     ports:
       - 3000:3000
     dns:

@@ -25,7 +25,8 @@ RUN apt-get update && apt-get install -y \
     npm \
     sox \
     libespeak-dev \
-    ffmpeg
+    ffmpeg \
+    libsox-fmt-mp3
 
 # numpy has to be explicitly installed before aeneas
 RUN pip3 install numpy requests
