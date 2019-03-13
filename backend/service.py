@@ -30,7 +30,7 @@ import mimetypes
 
 import logging
 
-REPOSITORY_SETTINGS = None
+global REPOSITORY_SETTINGS
 
 
 def ref(resource, embeddable=False, required=False):
@@ -154,7 +154,7 @@ labelcategory_schema = {
     'parent': ref("labelcategories"),
 
     # Colors for highliting in documents (not used now)
-    'color': simple_string,
+
     'bgcolor': simple_string,
 }
 
@@ -446,7 +446,7 @@ def source_autodetect(source_id):
             cleanup(properties.get("jméno a příjmení narátora/ky"))
     }
 
-    return jsonify(result)
+    return jsxonify(result)
 
 
 @app.route('/export', methods=['POST'])
@@ -753,7 +753,6 @@ def load_repository_config():
         return json.load(f)
 
 
-def run():
-    global REPOSITORY_SETTINGS
+if __name__ == '__main__':
     REPOSITORY_SETTINGS = load_repository_config()
     app.run(threaded=True, host="0.0.0.0")

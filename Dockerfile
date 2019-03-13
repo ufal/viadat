@@ -54,4 +54,4 @@ EXPOSE 5000
 
 RUN mkdir /db
 
-CMD mongod --dbpath=/db & (cd web && sh docker-start.sh && npm start) & (sleep 3 && python3 -m backend create-user test --password test) & (sleep 4 && python3 -m backend service)
+CMD mongod --dbpath=/db & (cd web && sh docker-start.sh && npm start) & (sleep 3 && python3 -m backend create-user test --password test) & (sleep 4 && flask run --host=0.0.0.0)
