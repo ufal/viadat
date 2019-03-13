@@ -162,10 +162,7 @@ def import_dir(path):
 def main():
     args = parse_args()
 
-    if args.command == "service":
-        from .service import run
-        run()
-    elif args.command == "create-user":
+    if args.command == "create-user":
         db = connect_to_db()
         if args.password is not None:
             password = args.password
