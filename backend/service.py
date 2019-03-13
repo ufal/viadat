@@ -155,7 +155,7 @@ labelcategory_schema = {
 
     # Colors for highliting in documents (not used now)
 
-    'bgcolor': simple_string,
+    'color': simple_string,
 }
 
 labels_schema = {
@@ -446,7 +446,7 @@ def source_autodetect(source_id):
             cleanup(properties.get("jméno a příjmení narátora/ky"))
     }
 
-    return jsxonify(result)
+    return jsonify(result)
 
 
 @app.route('/export', methods=['POST'])
