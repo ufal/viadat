@@ -12,14 +12,14 @@ import {
 import { AutoAffix } from "react-overlays";
 import { soundManager } from "soundmanager2";
 
-import { SERVER_URL } from "../config.js";
-import { fetch_document, fetch_labelinstance_map } from "../models/document.js";
+import { SERVER_URL } from "../../config.js";
+import { fetch_document, fetch_labelinstance_map } from "./models/document.js";
 import {
   create_labelinstance,
   delete_labelinstance,
   fetch_labels
-} from "../services/labels.js";
-import LabelTree from "./LabelTree.js";
+} from "../../services/labels.js";
+import LabelTree from "../gis/LabelTree.js";
 
 function formatTime(seconds) {
   let secs = Math.floor(seconds % 60);

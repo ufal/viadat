@@ -5,8 +5,8 @@ import json
 import os
 
 
-from ..fs.tmpdir import switch_to_tmpdir
-from ..text.transcript import get_sentences
+from backend.fs.tmpdir import switch_to_tmpdir
+from backend.modules.text.transcript import get_sentences
 
 
 def force_alignment(transcript, audio_file, extension):

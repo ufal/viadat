@@ -1,6 +1,6 @@
-import { fetch_transcript_content } from "../services/entries";
+import { fetch_transcript_content } from "../../../services/entries";
 import convert from "xml-js";
-import { fetch_labelinstances } from "../services/labels";
+import { fetch_labelinstances } from "../../../services/labels";
 
 function ensure_list(item) {
   if (item instanceof Array) {

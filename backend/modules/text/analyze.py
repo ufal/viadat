@@ -1,8 +1,8 @@
 import lxml.etree as et
 
-from ..utils.xml import element_to_text, elements_to_text
-from .nametag import canonize_tag
-from .service import safe_post
+from backend.utils.xml import element_to_text, elements_to_text
+from backend.modules.text.nametag import canonize_tag
+from backend.modules.text.service import safe_post
 
 
 def validate_tokenizer(element):

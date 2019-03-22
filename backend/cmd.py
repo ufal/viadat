@@ -3,12 +3,12 @@ import os.path
 import getpass
 
 from . import users
-from .text.tools import load_transcript, extract_info
-from .text.analyze import analyze_transcript
-from .audio.fa import force_alignment
+from backend.modules.text.tools import load_transcript, extract_info
+from backend.modules.text.analyze import analyze_transcript
+from backend.modules.deposit.fa import force_alignment
 from .fs.filestore import store, copy_to_store
 from lxml import etree as et
-from .text.index import index_lemmas, index_nametags
+from backend.modules.text.index import index_lemmas, index_nametags
 
 from pymongo import MongoClient
 

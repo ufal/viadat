@@ -1,5 +1,5 @@
 
-from backend.text.analyze import canonize_tag
+from backend.modules.text.analyze import canonize_tag
 
 def test_canonize_geo_tag():
     assert canonize_tag("Praha") == ["Praha"]

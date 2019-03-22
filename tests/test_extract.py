@@ -1,7 +1,7 @@
 
-from backend.text.tools import load_transcript
-from backend.audio.fa import force_alignment
-from backend.text.analyze import analyze_transcript
+from backend.modules.text.tools import load_transcript
+from backend.modules.deposit.fa import force_alignment
+from backend.modules.text.analyze import analyze_transcript
 
 
 def get_speakers(transcript):

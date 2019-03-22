@@ -2,8 +2,8 @@ import os
 import shutil
 import tempfile
 
-from . import convert
-from . import extract
+from backend.modules.text import convert
+from backend.modules.deposit import extract
 
 
 def load_transcript(filename):

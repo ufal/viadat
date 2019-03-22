@@ -8,7 +8,7 @@ import {
 } from "react-bootstrap";
 import { Link } from "react-router-dom";
 
-import { fetch_search } from "../services/search.js";
+import { fetch_search } from "./searchService.js";
 
 let ResultRow = props => {
   return (

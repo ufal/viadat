@@ -1,4 +1,4 @@
-from .service import Service
+from backend.modules.text.service import Service
 import itertools
 
 
