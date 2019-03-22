@@ -3,7 +3,7 @@ import "c3/c3.css";
 import React, { Component } from "react";
 import C3Chart from "react-c3js";
 
-import { fetch_document } from "../models/document.js";
+import { fetch_document } from "./annotate/models/document.js";
 import { fetch_transcript } from "../services/entries";
 
 class Item extends Component {

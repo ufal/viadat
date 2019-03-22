@@ -22,7 +22,7 @@ import {
   fetch_labelcategories,
   fetch_labels,
   remove_labelcategory
-} from "../services/labels.js";
+} from "../../services/labels.js";
 import { AreaSelectorMapView, MyMarker } from "./MapView";
 
 let LabelItem = props => {

@@ -4,7 +4,7 @@ This is the main backend module that controls whole REST service
 
 from eve import Eve
 from .fs.filestore import store, filename, load, filesize, compute_hash
-from .audio import cut
+from backend.modules.deposit import cut
 from flask_cors import CORS
 from flask import jsonify, abort, Response
 import flask
@@ -15,13 +15,13 @@ from .utils.xml import to_json
 from flask import request
 from bson.objectid import ObjectId
 from lxml import etree as et
-from .audio.fa import force_alignment
-from .text import analyze
+from backend.modules.deposit.fa import force_alignment
+from backend.modules.text import analyze
 from .repository import get_repository_collection
 from . import users
 from eve.auth import TokenAuth, requires_auth
-from .text.tools import load_transcript
-from .text.analyze import analyze_transcript
+from backend.modules.text.tools import load_transcript
+from backend.modules.text.analyze import analyze_transcript
 
 
 import io

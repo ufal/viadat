@@ -18,7 +18,7 @@ import {
   fetch_labelinstances_of_label,
   remove_label,
   update_label
-} from "../services/labels.js";
+} from "../../services/labels.js";
 import LabelTree from "./LabelTree";
 import { LocationSelectDialog } from "./MapView";
 

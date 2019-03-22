@@ -1,4 +1,4 @@
-import { call_service_json } from "./utils.js";
+import { call_service_json } from "../../services/utils.js";
 
 export function fetch_search(text) {
   return call_service_json("lemmatize?q=" + text).then(r => {
