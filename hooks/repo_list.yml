@@ -1,8 +1,0 @@
-# Path to repo root dir | link to github
-
-../backend/modules/deposit: git@github.com:ufal/VIADAT-DEPOSIT.git
-../backend/modules/text: git@github.com:ufal/VIADAT-TEXT.git
-../web/src/components/annotate: git@github.com:ufal/VIADAT-ANNOTATE.git
-../web/src/components/gis: git@github.com:ufal/VIADAT-GIS.git
-../web/src/components/search: git@github.com:ufal/VIADAT-SEARCH.git
-../web/src: git@github.com:ufal/VIADAT-ANALYZE.git
