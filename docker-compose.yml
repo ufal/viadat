@@ -1,7 +1,7 @@
 version: '3'
 services:
   web:
-    container_name: viadat
+    container_name: viadat_web
     build: .
     environment:
     - LC_ALL=C.UTF-8
@@ -11,17 +11,28 @@ services:
     - FLASK_APP=/viadat/backend/service.py
     ports:
       - 3000:3000
+      # expose the backend, this eases the use of localhost:5000 from frontend
+      - 5000:5000
     dns:
       - 8.8.8.8
-
     # we want to mount the source files, but avoid overwriting the directory with installed npm modules
     volumes:
       - ./backend:/viadat/backend
       - ./web/public:/viadat/web/public
       - ./web/src:/viadat/web/src
       - node_modules:/viadat/web/node_modules
-      - mongodb:/db
       - ./files:/viadat/files
+  mongo:
+    container_name: viadat_mongo
+    image: mongo
+    volumes:
+      - mongodb:/data/db
+  # webui for inspecting mongodb
+  mongo-express:
+    container_name: viadat_mongo_express
+    image: mongo-express
+    ports:
+      - 8081:8081
 
 volumes:
   mongodb:

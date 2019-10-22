@@ -22,6 +22,7 @@ from . import users
 from eve.auth import TokenAuth, requires_auth
 from backend.modules.text.tools import load_transcript
 from backend.modules.text.analyze import analyze_transcript
+from backend.settings import mongo_settings
 
 
 import io
@@ -196,10 +197,8 @@ def make_domain(schema):
     }
 
 
-settings = {
-    'MONGO_HOST': '127.0.0.1',
-    'MONGO_PORT': 27017,
-    'MONGO_DBNAME': 'viadat',
+settings = mongo_settings.copy()
+settings.update({
     'PAGINATION_LIMIT': 200,
     'X_DOMAINS': "*",
     'X_HEADERS': ['Authorization', 'Content-type', 'If-Match'],
@@ -217,7 +216,7 @@ settings = {
         'labels': make_domain(labels_schema),
         'labelinstances': make_domain(labelinstance_schema)
     }
-}
+})
 
 
 class TokenAuthenticator(TokenAuth):
