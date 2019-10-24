@@ -31,7 +31,7 @@ import mimetypes
 
 import logging
 
-global REPOSITORY_SETTINGS
+REPOSITORY_SETTINGS = None
 
 
 def ref(resource, embeddable=False, required=False):
@@ -451,9 +451,9 @@ def source_autodetect(source_id):
 @app.route('/export', methods=['POST'])
 @requires_auth("sources")
 def export():
-    settings = REPOSITORY_SETTINGS
+    repo_settings = load_repository_config()
 
-    collection = get_repository_collection(settings)
+    collection = get_repository_collection(repo_settings)
 
     # Export sources
 
@@ -748,10 +748,12 @@ def logout():
 
 
 def load_repository_config():
-    with open("repository.conf") as f:
-        return json.load(f)
+    global REPOSITORY_SETTINGS
+    if not REPOSITORY_SETTINGS:
+        with open("repository.conf") as f:
+            REPOSITORY_SETTINGS = json.load(f)
+    return REPOSITORY_SETTINGS
 
 
 if __name__ == '__main__':
-    REPOSITORY_SETTINGS = load_repository_config()
     app.run(threaded=True, host="0.0.0.0")
