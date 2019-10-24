@@ -1,7 +1,7 @@
 version: '3'
 services:
-  web:
-    container_name: viadat_web
+  web_backend:
+    container_name: viadat_web_backend
     build: .
     environment:
     - LC_ALL=C.UTF-8
@@ -10,7 +10,6 @@ services:
     - FLASK_ENV=development
     - FLASK_APP=/viadat/backend/service.py
     ports:
-      - 3000:3000
       # expose the backend, this eases the use of localhost:5000 from frontend
       - 5000:5000
     dns:
@@ -18,10 +17,21 @@ services:
     # we want to mount the source files, but avoid overwriting the directory with installed npm modules
     volumes:
       - ./backend:/viadat/backend
+      - ./files:/viadat/files
+  web_frontend:
+    container_name: viadat_web_frontend
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    environment:
+      - LC_ALL=C.UTF-8
+      - LANG=C.UTF-8
+    ports:
+      - 3000:3000
+    volumes:
       - ./web/public:/viadat/web/public
       - ./web/src:/viadat/web/src
       - node_modules:/viadat/web/node_modules
-      - ./files:/viadat/files
   mongo:
     container_name: viadat_mongo
     image: mongo
