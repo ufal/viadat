@@ -3,10 +3,14 @@ import convert from "xml-js";
 import { fetch_labelinstances } from "../../../services/labels";
 
 function ensure_list(item) {
-  if (item instanceof Array) {
-    return item;
-  } else {
-    return [item];
+  if(item) {
+    if (item instanceof Array) {
+      return item;
+    } else {
+      return [item];
+    }
+  }else {
+    return []
   }
 }
 
