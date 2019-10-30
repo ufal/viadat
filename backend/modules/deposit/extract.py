@@ -56,7 +56,7 @@ class TranscriptBuilder:
 def extract_speakers(elements, builder):
 
     # Remove text in square brackets + white spaces before
-    rx = re.compile("\s*\[[^\]]*\]")
+    rx = re.compile(r"\s*\[[^\]]*\]")
 
     for e in elements:
         text = rx.sub("", element_to_text(e)).strip()
@@ -97,7 +97,8 @@ def extract_dialog_trascript(filename):
             if v and "solid" in v:
                 delimiter_styles.append(s.get(ns_style + "name"))
         for p in s.iter(ns_style + "text-properties"):
-            if p.get(ns_style + "text-underline-style") == "solid":
+            # There is some text and it is underlined
+            if p.get(ns_style + "text-underline-style") == "solid" and p.xpath('.//text()'):
                 delimiter_styles.append(s.get(ns_style + "name"))
 
     header = []
