@@ -17,7 +17,7 @@ let ResultRow = props => {
         <Link
           to={{
             pathname: "item/" + props.transcript._id,
-            search: "?lemma=" + props.lemmas[0]
+            search: "?lemma[]=" + props.lemmas.join('&lemma[]=')
           }}
         >
           {props.transcript.name}
@@ -44,15 +44,17 @@ class Search extends Component {
 
   handleSearch(e) {
     e.preventDefault();
-    fetch_search(this.state.searchText).then(r => {
-      this.setState({
-        ...this.state,
-        resultsFor: this.state.searchText,
-        searchText: "",
-        lemmas: r.lemmas,
-        results: r.results
+    if(this.state.searchText){
+      fetch_search(this.state.searchText).then(r => {
+        this.setState({
+          ...this.state,
+          resultsFor: this.state.searchText,
+          searchText: "",
+          lemmas: r.lemmas,
+          results: r.results
+        });
       });
-    });
+    }
   }
 
   render() {

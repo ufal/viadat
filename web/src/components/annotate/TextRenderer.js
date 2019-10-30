@@ -346,7 +346,7 @@ class TextRenderer extends Component {
 
       if (this.props.lemma) {
         for (let lemma of state.document.lemmas[key]) {
-          if (lemma.value === this.props.lemma) {
+          if (this.props.lemma.includes(lemma.value)) {
             output.push({
               from: lemma.from,
               to: lemma.to,
