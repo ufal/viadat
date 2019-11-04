@@ -105,7 +105,14 @@ def extract_dialog_trascript(filename):
     body = []
     header_flag = True
 
+    # TODO can't we simply whitelist some headers?
     for p in content.iter(ns_text + "p"):
+        if header_flag:
+            text = ''.join(p.xpath('.//text()'))
+            if 'projekt:' not in text.lower() and len(text.split(' ')) > 20:
+                logging.warning('Paragraph seems too long for a header')
+                header_flag = False
+
         if header_flag:
             header.append(p)
         else:
