@@ -431,6 +431,7 @@ def source_autodetect(source_id):
     doc = docs[0]
 
     transcript = load_transcript(filename(doc["uuid"]))
+    # TODO: why is .lower in here
     properties = {p.get("name").lower(): p.get("value")
                   for p in transcript.iter("property")}
 
@@ -439,6 +440,7 @@ def source_autodetect(source_id):
             value = value[:value.index("(")]
         return value.strip()
 
+    # TODO handle missing values
     result = {
         "dc_title": properties.get("přepis rozhovoru"),
         "viadat_narrator_name":
@@ -569,6 +571,7 @@ def upload_at(entry_id):
     metadata = {}
     metadata["dc_title"] = "Uploaded AT"
 
+    # TODO a group gets created each time we get here, errors or request methods do not matter
     g_item = {
         "entry": entry_id,
         "metadata": metadata,
@@ -595,6 +598,7 @@ def upload_at(entry_id):
             transcript = xml.getroot()
             audio = transcript.find("head").find("audio")
 
+            # TODO find_one might return None
             source = source_db.find_one({"files.hash": audio.get("hash")})
             for sf in source["files"]:
                 if sf["hash"] == audio.get("hash"):

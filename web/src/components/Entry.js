@@ -403,6 +403,8 @@ class Entry extends Component {
   }
 
   render() {
+    // TODO Upload AT should be shown probably only when there are source files
+    // TODO Should I have the option to create AT if one was already created?
     return (
       <div>
         {this.state.entry && (

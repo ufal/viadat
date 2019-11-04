@@ -139,5 +139,5 @@ def analyze_transcript(transcript):
     tokenize(transcript)
     insert_lemmas(transcript)
     # insert_name_tags(transcript)
-    print("TRANSCRIPT: ", et.tostring(transcript, pretty_print=True).decode())
+    #print("TRANSCRIPT: ", et.tostring(transcript, pretty_print=True).decode())
     return transcript
