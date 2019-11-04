@@ -1,5 +1,21 @@
 version: '3'
 services:
+  repo:
+    image: docker.pkg.github.com/kosarko/viadat-repo-docker/viadat-repo_dspace:1.0
+    ports:
+        - 8080:8080
+    depends_on:
+        - repo_db
+    volumes:
+      - assetstore:/srv/dspace/assetstore
+      - solr:/srv/dspace/solr
+      - log:/srv/dspace/log
+    command: bash -c "/dspace_after_install_init/init.sh && /usr/local/tomcat/bin/catalina.sh jpda run"
+  repo_db:
+    container_name: postgres
+    image: docker.pkg.github.com/kosarko/viadat-repo-docker/viadat-repo_postgres:1.0
+    volumes:
+      - pgdata:/var/lib/postgresql/data
   web_backend:
     container_name: viadat_web_backend
     build: .
@@ -18,6 +34,8 @@ services:
     volumes:
       - ./backend:/viadat/backend
       - ./files:/viadat/files
+      - ./tests:/viadat/tests
+      - /c/Users/ko_ok/Downloads/viadat/data/:/data
   web_frontend:
     container_name: viadat_web_frontend
     build:
@@ -47,3 +65,7 @@ services:
 volumes:
   mongodb:
   node_modules:
+  assetstore:
+  solr:
+  log:
+  pgdata:
