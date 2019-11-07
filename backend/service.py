@@ -99,6 +99,7 @@ metadata_type = {
         'dc_title': required_string,
         'dc_date_created': {"type": "datetime", "nullable": True},
         'dc_rights_license': simple_string,
+        'dc_relation_ispartof': required_string,
         'status': simple_string,
     }
 }
@@ -388,6 +389,9 @@ repo_known_names = ["dc_title",
 narrator_metadata_fields = [field for field in narrator_metadata_type['schema'].keys() if field
                             != 'status' and field != 'handle']
 
+interview_metadata_fields= [field for field in metadata_type['schema'].keys() if field
+                            != 'status' and field != 'handle']
+
 
 def _metadata_to_repo_metadata(metadata, known_names):
     return {name.replace("_", "."): metadata.get(name) for name in known_names}
@@ -398,7 +402,7 @@ def _get_narrator_metadata(metadata):
 
 
 def _get_interview_metadata(metadata):
-    return _metadata_to_repo_metadata(metadata, interview_known_names)
+    return _metadata_to_repo_metadata(metadata, interview_metadata_fields)
 
 
 def generate_labelfile(transcript_id):
@@ -503,16 +507,20 @@ def export():
     for source in ready_sources:
         metadata = source["metadata"]
         logging.info("Exporting source %s", metadata["dc_title"])
-        item = metadata_to_repo_item(metadata)
-        remote_item = collection.create_item(item)
+        # TODO should be dict of field_name:value, raises ValueError - can I get info from that?
+        narrator = repository.find_narrator('http://hdl.handle.net/' + metadata[
+            'dc_relation_ispartof'])
+        interview_metadata = _get_interview_metadata(metadata)
+        interview = narrator.create_interview(interview_metadata)
 
         for f in source["files"]:
             logging.info("Uploading %s", f["name"])
             mime = mt.guess_type(f["name"])[0]
-            remote_item.add_bitstream(filename(f["uuid"]), mime, f["name"])
+            interview.add_bitstream(data_file_path=filename(f["uuid"]), mime_type=mime,
+                                    data_file_name=f["name"])
         sources_db.update({"_id": source["_id"]},
                           {"$set": {"metadata.status": "p",
-                                    "metadata.handle": remote_item.handle}})
+                                    "metadata.handle": interview.handle}})
 
         logging.info("Exported %s", metadata["dc_title"])
 

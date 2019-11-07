@@ -9,6 +9,7 @@ import {
   Modal
 } from "react-bootstrap";
 import DatePicker from "react-datepicker";
+import {fetch_published_narrators} from "../services/narrators";
 
 function status_to_name(name) {
   if (!name || name === "x") {
@@ -32,17 +33,45 @@ class MetadataDialog extends Component {
     super(props);
     this.state = {
       metadata: props.metadata,
+      narrators: [],
       autodetecting: false,
       message: null
     };
   }
 
-  getValidationState() {
-    if (this.state.metadata.title && this.state.metadata.title.length > 1) {
+  componentDidMount() {
+    this.reload();
+  }
+
+  reload(){
+    fetch_published_narrators().then(n => {
+      this.setState(update(this.state,{narrators: {$set: n._items}}))
+    })
+  }
+
+  validateTitle() {
+    if (this.state.metadata.dc_title && this.state.metadata.dc_title.length > 1) {
       return "success";
     } else {
       return "error";
     }
+  }
+
+  validateNarrator() {
+    if (this.state.metadata.dc_relation_ispartof){
+      return "success";
+    } else {
+      return "error";
+    }
+  }
+
+  validate(){
+    for (const f of [this.validateTitle, this.validateNarrator]){
+      if(f.apply(this) !== 'success'){
+        return 'error';
+      }
+    }
+    return "success";
   }
 
   setNewStatus() {
@@ -109,6 +138,15 @@ class MetadataDialog extends Component {
     );
   };
 
+  _render_published_narrators(){
+    const options = [];
+    options.push(<option key="empty_option" value=""/>)
+    for (const {metadata: {handle: h, dc_title: t, dc_identifier: sig}, _id: id} of this.state.narrators){
+      options.push(<option key={id} value={h}>{t} ({sig})</option>)
+    }
+    return options;
+  }
+
   render() {
     let props = this.props;
 
@@ -120,7 +158,7 @@ class MetadataDialog extends Component {
         }}
       >
         <Modal.Header closeButton>
-          <Modal.Title>Metadata: {this.state.metadata.title}</Modal.Title>
+          <Modal.Title>Metadata: {this.state.metadata.dc_title}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <FormGroup controlId="status">
@@ -137,7 +175,7 @@ class MetadataDialog extends Component {
 
           <FormGroup
             controlId="dc_title"
-            validationState={this.getValidationState()}
+            validationState={this.validateTitle()}
           >
             <ControlLabel>Title</ControlLabel>
             <FormControl
@@ -151,6 +189,7 @@ class MetadataDialog extends Component {
                 )
               }
             />
+            <FormControl.Feedback />
           </FormGroup>
 
           <FormGroup>
@@ -168,6 +207,23 @@ class MetadataDialog extends Component {
               }
             />
           </FormGroup>
+          <FormGroup controlId="viadat_narrator" validationState={this.validateNarrator()}>
+            <ControlLabel>Narrator</ControlLabel>
+            <FormControl
+              componentClass="select"
+              placeholder="select"
+              value={this.state.metadata.dc_relation_ispartof}
+              onChange={e =>
+                  this.setState(update(this.state, {
+                    metadata: { dc_relation_ispartof: { $set: e.target.value}}
+                  }))
+              }
+            >
+              {this._render_published_narrators()}
+            </FormControl>
+           <FormControl.Feedback/>
+          </FormGroup>
+          <a href="/narrators">Create New Narrator</a>
 
           <FormGroup>
             <ControlLabel>License</ControlLabel>
@@ -215,7 +271,7 @@ class MetadataDialog extends Component {
               </Button>
             )}
             <Button
-              disabled={this.disabled}
+              disabled={this.disabled || this.validate()!== 'success'}
               onClick={() => {
                 this.props.onUpdate(this.state.metadata);
                 this.props.onClose();

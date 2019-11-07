@@ -52,9 +52,18 @@ class NewNarratorForm extends Component {
 
     getValidationState() {
         const md  = this.state.metadata;
-        if (md.dc_title && md.viadat_narrator_birthdate && md.dc_identifier) {
+        for (const key of ["dc_title", "viadat_narrator_birthdate", "dc_identifier"]){
+            if(this.validateField(md[key]) !== 'success'){
+                return "error";
+            }
+        }
+        return "success";
+    }
+
+    validateField(field_value){
+        if(field_value){
             return "success";
-        } else {
+        }else {
             return "error";
         }
     }
@@ -64,10 +73,10 @@ class NewNarratorForm extends Component {
         return (
             <Panel>
                 <form onSubmit={e => this.onSubmit(e)}>
-                    <FormGroup validationState={this.getValidationState()}>
                         {fields.map((field, index) => {
                             return (
                                 <div key={field}>
+                                <FormGroup validationState={this.validateField(this.state.metadata[field])}>
                                 <ControlLabel>{field2display[field]}</ControlLabel>
                                 <FormControl
                                     type="text"
@@ -83,10 +92,10 @@ class NewNarratorForm extends Component {
                                     disabled={field.includes('_rights')}
                                 />
                                 <FormControl.Feedback />
+                                </FormGroup>
                                 </div>
                             )
                         })}
-                    </FormGroup>
                     <Button
                         bsStyle="primary"
                         type="submit"

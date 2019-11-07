@@ -8,6 +8,10 @@ export function fetch_ready_narrators() {
     return call_service_json('narrators?where={"metadata.status": "r"}');
 }
 
+export function fetch_published_narrators() {
+    return call_service_json('narrators?where={"metadata.status": "p"}');
+}
+
 export function fetch_narrator(id) {
     return call_service_json("narrators/" + id)
 }
