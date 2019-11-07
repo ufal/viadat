@@ -17,7 +17,7 @@ from bson.objectid import ObjectId
 from lxml import etree as et
 from backend.modules.deposit.fa import force_alignment
 from backend.modules.text import analyze
-from .repository import get_repository_collection
+from .repository import get_logged_in_instance
 from . import users
 from eve.auth import TokenAuth, requires_auth
 from backend.modules.text.tools import load_transcript
@@ -99,7 +99,21 @@ metadata_type = {
         'dc_title': required_string,
         'dc_date_created': {"type": "datetime", "nullable": True},
         'dc_rights_license': simple_string,
-        'viadat_narrator_name': simple_string,
+        'status': simple_string,
+    }
+}
+
+narrator_metadata_type = {
+    'type': 'dict',
+    'schema': {
+        'handle': simple_string,
+        'dc_title': required_string,
+        'viadat_narrator_birthdate': simple_string,
+        'dc_identifier': simple_string,
+        'dc_rights_uri': simple_string,
+        'dc_rights': simple_string,
+        'dc_rights_label': simple_string,
+        #'dc_date_created': {"type": "datetime", "nullable": True},
         'status': simple_string,
     }
 }
@@ -185,6 +199,11 @@ lemmas_schema = {
     'transcripts': ref_list('transcripts', True),
 }
 
+narrators_schema = {
+    'metadata': narrator_metadata_type,
+    'sources': ref_list('sources', embeddable=True)
+}
+
 
 def make_domain(schema):
     return {
@@ -214,7 +233,8 @@ settings.update({
         'transcripts': make_domain(transcripts_schema),
         'labelcategories': make_domain(labelcategory_schema),
         'labels': make_domain(labels_schema),
-        'labelinstances': make_domain(labelinstance_schema)
+        'labelinstances': make_domain(labelinstance_schema),
+        'narrators': make_domain(narrators_schema)
     }
 })
 
@@ -365,17 +385,20 @@ exts = {
 repo_known_names = ["dc_title",
                     "viadat_narrator_name"]
 
+narrator_metadata_fields = [field for field in narrator_metadata_type['schema'].keys() if field
+                            != 'status' and field != 'handle']
 
-def metadata_to_repo_item(metadata):
-    result = []
-    for name in repo_known_names:
-        value = metadata.get(name)
-        if value:
-            result.append(
-                {"key": name.replace("_", "."),
-                 "value": value,
-                 "language": None})
-    return result
+
+def _metadata_to_repo_metadata(metadata, known_names):
+    return {name.replace("_", "."): metadata.get(name) for name in known_names}
+
+
+def _get_narrator_metadata(metadata):
+    return _metadata_to_repo_metadata(metadata, narrator_metadata_fields)
+
+
+def _get_interview_metadata(metadata):
+    return _metadata_to_repo_metadata(metadata, interview_known_names)
 
 
 def generate_labelfile(transcript_id):
@@ -455,7 +478,21 @@ def source_autodetect(source_id):
 def export():
     repo_settings = load_repository_config()
 
-    collection = get_repository_collection(repo_settings)
+    repository = get_logged_in_instance(repo_settings)
+
+    # Export narrators
+    narrators_db = app.data.driver.db["narrators"]
+    ready_narrators = narrators_db.find({"metadata.status": "r"})
+
+    for narrator in ready_narrators:
+        metadata = narrator["metadata"]
+        logging.info("Exporting narrator %s", metadata["dc_title"])
+        narrator_metadata = _get_narrator_metadata(metadata)
+        repository_item = repository.create_narrator(narrator_metadata)
+        narrators_db.update({"_id": narrator["_id"]},
+                            {"$set": {"metadata.status": "p",
+                                      "metadata.handle": repository_item.handle}}
+                            )
 
     # Export sources
 

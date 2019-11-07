@@ -153,21 +153,6 @@ class MetadataDialog extends Component {
             />
           </FormGroup>
 
-          <FormGroup controlId="viadat_narrator_name">
-            <ControlLabel>Narrator</ControlLabel>
-            <FormControl
-              disabled={this.disabled}
-              value={this.state.metadata["viadat_narrator_name"] || ""}
-              onChange={e =>
-                this.setState(
-                  update(this.state, {
-                    metadata: { viadat_narrator_name: { $set: e.target.value } }
-                  })
-                )
-              }
-            />
-          </FormGroup>
-
           <FormGroup>
             <ControlLabel>Creation date</ControlLabel>
             <DatePicker

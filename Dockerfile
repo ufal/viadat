@@ -30,7 +30,7 @@ RUN pip3 install aeneas
 
 FROM deps
 
-RUN git clone --depth=1 https://github.com/ufal/pyclarindspace && \
+RUN git clone -b viadat --depth=1 https://github.com/ufal/pyclarindspace && \
     cd pyclarindspace && \
     python3 setup.py install
 

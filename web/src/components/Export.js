@@ -8,10 +8,14 @@ import {
   run_export
 } from "../services/entries";
 
+import {
+    fetch_ready_narrators
+} from "../services/narrators"
+
 class Export extends Component {
   constructor(props) {
     super(props);
-    this.state = { readySources: [], readyGroups: [] };
+    this.state = { readySources: [], readyGroups: [], readyNarrators: [] };
 
     this.refresh();
   }
@@ -22,6 +26,9 @@ class Export extends Component {
     });
     fetch_ready_groups().then(s => {
       this.setState(update(this.state, { readyGroups: { $set: s._items } }));
+    });
+    fetch_ready_narrators().then(n => {
+      this.setState(update(this.state, { readyNarrators: { $set: n._items } }));
     });
   }
 
@@ -56,6 +63,13 @@ class Export extends Component {
     return (
       <div>
         <h1>Export</h1>
+          {this.state.readyNarrators.length > 0 && <h2>Ready Narrators</h2>}
+          <ul>
+              {this.state.readyNarrators.map(n => (
+                  <li key={n._id}>{n.metadata.dc_title}</li>
+              ))}
+          </ul>
+
         {this.state.readySources.length > 0 && <h2>Ready sources</h2>}
         <ul>
           {this.state.readySources.map(s => (
@@ -69,7 +83,10 @@ class Export extends Component {
             <li key={s._id}>{s.metadata.dc_title}</li>
           ))}
         </ul>
-        { this.state.readySources.length === 0 && this.state.readyGroups.length === 0 && <p><i>Nothing to export</i></p>}
+        { this.state.readySources.length === 0 &&
+          this.state.readyGroups.length === 0 &&
+          this.state.readyNarrators.length === 0 &&
+          <p><i>Nothing to export</i></p>}
 
         <Button disabled={this.state.readySources.length === 0 && this.state.readyGroups.length === 0} onClick={() => this.onExport()}>Run export</Button>{" "}
         {this.state.statusText}
