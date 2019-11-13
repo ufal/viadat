@@ -451,8 +451,12 @@ class TextRenderer extends Component {
 
   onNewTag() {
     let selection = window.getSelection();
-    let tokens = selection.anchorNode.parentElement.id.split("-");
+    let tokens = [];
+    if(selection.anchorNode) {
+        tokens = selection.anchorNode.parentElement.id.split("-");
+    }
     if (tokens.length !== 3 || tokens[0] !== "segment") {
+      alert("Invalid selection");
       console.log("INVALID SELECTION");
       return;
     }

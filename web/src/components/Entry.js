@@ -272,7 +272,7 @@ class GroupItem extends Component {
   render() {
     return (
       <div>
-        <h3>{this.props.group.metadata.title}</h3>
+        <h3>{this.props.group.metadata.dc_title}</h3>
 
         <Metadata
           metadata={this.props.group.metadata}
