@@ -32,7 +32,13 @@ class MetadataDialog extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      metadata: props.metadata,
+      metadata: {...props.metadata, ...{
+      'dc_rights_uri': 'https://ufal.mff.cuni.cz/grants/viadat/license',
+      'dc_rights': 'VIADAT License',
+      'dc_rights_label': 'RES',
+      'dc_language_iso': 'ces',
+      'viadat_interview_date': new Date().toUTCString()
+      }},
       narrators: [],
       autodetecting: false,
       message: null
@@ -49,24 +55,44 @@ class MetadataDialog extends Component {
     })
   }
 
-  validateTitle() {
-    if (this.state.metadata.dc_title && this.state.metadata.dc_title.length > 1) {
+  validate_field(field_value) {
+    if (field_value) {
       return "success";
     } else {
       return "error";
     }
   }
 
+  validateTitle(){
+    return this.validate_field(this.state.metadata.dc_title)
+  }
   validateNarrator() {
-    if (this.state.metadata.dc_relation_ispartof){
-      return "success";
-    } else {
-      return "error";
+    return this.validate_field(this.state.metadata.dc_relation_ispartof)
+  }
+  validateLanguage(){
+    if(this.state.metadata.dc_language_iso && this.state.metadata.dc_language_iso.length === 3){
+      return "success"
+    }else{
+      return "error"
     }
+  }
+  validateRights(){
+    for (const field of ['dc_rights', 'dc_rights_uri', 'dc_rights_label']){
+      if(this.validate_field(field) !== 'success'){
+        return 'error';
+      }
+    }
+    return 'success';
+  }
+  validateInterviewDate(){
+    return this.validate_field(this.state.metadata.viadat_interview_date)
+  }
+  validateIdentifier(){
+      return this.validate_field(this.state.metadata.dc_identifier)
   }
 
   validate(){
-    for (const f of [this.validateTitle, this.validateNarrator]){
+    for (const f of [this.validateTitle, this.validateNarrator, this.validateLanguage, this.validateRights, this.validateInterviewDate, this.validateIdentifier]){
       if(f.apply(this) !== 'success'){
         return 'error';
       }
@@ -122,7 +148,7 @@ class MetadataDialog extends Component {
         } else {
           this.setState({
             ...this.state,
-            metadata: m,
+            metadata: {...this.state.metadata,...m},
             autodetecting: false,
             message: "Done"
           });
@@ -167,7 +193,10 @@ class MetadataDialog extends Component {
             <StatusLabel status={this.state.metadata.status} />
             <span> </span>
             {this.statusText() && (
-              <Button bsSize="small" onClick={() => this.setNewStatus()}>
+              <Button
+                  disabled={this.disabled || this.validate()!== 'success'}
+                  bsSize="small"
+                  onClick={() => this.setNewStatus()}>
                 {this.statusText()}
               </Button>
             )}
@@ -192,24 +221,47 @@ class MetadataDialog extends Component {
             <FormControl.Feedback />
           </FormGroup>
 
-          <FormGroup>
-            <ControlLabel>Creation date</ControlLabel>
+          <FormGroup
+              controlId="dc_identifier"
+              validationState={this.validateIdentifier()}
+          >
+            <ControlLabel>Signature</ControlLabel>
+            <FormControl
+                disabled={this.disabled}
+                value={this.state.metadata["dc_identifier"] || ""}
+                onChange={e =>
+                    this.setState(
+                        update(this.state, {
+                          metadata: { dc_identifier: { $set: e.target.value } }
+                        })
+                    )
+                }
+            />
+            <FormControl.Feedback />
+          </FormGroup>
+
+          <FormGroup controlId="viadat_interview_date" validationState={this.validateInterviewDate()}>
+            <ControlLabel>Date of interview</ControlLabel>
             <DatePicker
-              selected={moment(this.state.metadata["dc_date_created"])}
+              disabled={this.disabled}
+              selected={moment(this.state.metadata["viadat_interview_date"])}
               onChange={e =>
                 this.setState(
                   update(this.state, {
                     metadata: {
-                      dc_date_created: { $set: new Date(e).toUTCString() }
+                      viadat_interview_date: { $set: new Date(e).toUTCString() }
                     }
                   })
                 )
               }
             />
+            <FormControl.Feedback />
           </FormGroup>
+
           <FormGroup controlId="viadat_narrator" validationState={this.validateNarrator()}>
-            <ControlLabel>Narrator</ControlLabel>
+            <ControlLabel>Narrator (Select one of the published narrators or create one)</ControlLabel>
             <FormControl
+                disabled={this.disabled}
               componentClass="select"
               placeholder="select"
               value={this.state.metadata.dc_relation_ispartof}
@@ -225,41 +277,61 @@ class MetadataDialog extends Component {
           </FormGroup>
           <a href="/narrators">Create New Narrator</a>
 
-          <FormGroup>
+          <FormGroup controlId="dc_rights" validationState={this.validateRights()}>
             <ControlLabel>License</ControlLabel>
             <FormControl
+                disabled={this.disabled}
               componentClass="select"
               placeholder="select"
-              value={this.state.metadata.dc_rights_license}
+              value={this.state.metadata.dc_rights_uri}
               onChange={e =>
+              {
+                const dc_rights = e.target.selectedOptions[0].text.split(" | ");
+                const label = dc_rights[2]
+                const rights = dc_rights[0];
                 this.setState(
-                  update(this.state, {
-                    metadata: { dc_rights_license: { $set: e.target.value } }
-                  })
-                )
+                      update(this.state, {
+                        metadata: {
+                          dc_rights_uri: {$set: e.target.value},
+                          dc_rights_label: {$set: label},
+                          dc_rights: {$set: rights}
+                        }
+                      })
+                  )
+              }
               }
             >
               <option value="" />
-              <option value="Public domain (https://creativecommons.org/publicdomain/mark/1.0/)">
-                Public domain
-                (https://creativecommons.org/publicdomain/mark/1.0/)
+              <option value="https://ufal.mff.cuni.cz/grants/viadat/license">
+                VIADAT License |
+                (https://ufal.mff.cuni.cz/grants/viadat/license) |
+                RES
               </option>
-              <option value="Creative Commons - Attribution 4.0 International (CC BY 4.0) (https://creativecommons.org/licenses/by/4.0/)">
-                Creative Commons - Attribution 4.0 International (CC BY 4.0)
-                (https://creativecommons.org/licenses/by/4.0/)
+              <option value="https://creativecommons.org/publicdomain/mark/1.0/">
+                Public domain |
+                (https://creativecommons.org/publicdomain/mark/1.0/) |
+                PUB
+              </option>
+              <option value="https://creativecommons.org/licenses/by/4.0/">
+                Creative Commons - Attribution 4.0 International (CC BY 4.0) |
+                (https://creativecommons.org/licenses/by/4.0/) |
+                PUB
               </option>
             </FormControl>
+            <FormControl.Feedback />
           </FormGroup>
 
-          <FormGroup>
-            <ControlLabel>Language (if set incorectly, then force alignment will be incorrect)</ControlLabel>
+          <FormGroup controlId="dc_language_iso" validationState={this.validateLanguage()}>
+            <ControlLabel>Language (if set incorrectly, then force alignment will be incorrect)</ControlLabel>
             <FormControl
               componentClass="select"
-              value="cs">
-              <option value="cs">
+              disabled="disabled"
+              value={this.state.metadata.dc_language_iso}>
+              <option value="ces">
                 Czech
               </option>
             </FormControl>
+            <FormControl.Feedback />
           </FormGroup>
 
 

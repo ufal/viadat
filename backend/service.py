@@ -104,6 +104,22 @@ metadata_type = {
     }
 }
 
+interview_metadata_type = {
+    'type': 'dict',
+    'schema': {
+        'handle': simple_string,
+        'dc_title': required_string,
+        'viadat_interview_date': {"type": "datetime", "nullable": True},
+        'dc_identifier': simple_string,
+        'dc_rights_uri': simple_string,
+        'dc_rights': simple_string,
+        'dc_rights_label': simple_string,
+        'dc_language_iso': simple_string,
+        'dc_relation_ispartof': simple_string,
+        'status': simple_string,
+    }
+}
+
 narrator_metadata_type = {
     'type': 'dict',
     'schema': {
@@ -114,14 +130,13 @@ narrator_metadata_type = {
         'dc_rights_uri': simple_string,
         'dc_rights': simple_string,
         'dc_rights_label': simple_string,
-        #'dc_date_created': {"type": "datetime", "nullable": True},
         'status': simple_string,
     }
 }
 
 sources_schema = {
     'entry': ref("entries", embeddable=True, required=True),
-    'metadata': metadata_type,
+    'metadata': interview_metadata_type,
     'files': {
         'type': 'list',
         'schema': {
@@ -206,8 +221,8 @@ narrators_schema = {
 }
 
 
-def make_domain(schema):
-    return {
+def make_domain(schema, **kwargs):
+    cfg = {
             "schema": schema,
             'resource_methods': ['GET', 'POST'],
             'item_methods': ['GET', 'DELETE', 'PATCH'],
@@ -215,9 +230,13 @@ def make_domain(schema):
             'cache_control': 'no-cache, no-store, must-revalidate',
             'cache_expires': 0,
     }
+    if kwargs:
+        cfg.update(kwargs)
+    return cfg
 
 
 settings = mongo_settings.copy()
+# TODO should we create some sort of indexes?
 settings.update({
     'PAGINATION_LIMIT': 200,
     'X_DOMAINS': "*",
@@ -235,7 +254,9 @@ settings.update({
         'labelcategories': make_domain(labelcategory_schema),
         'labels': make_domain(labels_schema),
         'labelinstances': make_domain(labelinstance_schema),
-        'narrators': make_domain(narrators_schema)
+        # index should allow case insensitive searching, useful in autodetect
+        'narrators': make_domain(narrators_schema, mongo_indexes={'narrator_name': [(
+            'metadata.dc_title', 'text')]})
     }
 })
 
@@ -383,13 +404,10 @@ exts = {
 }
 
 
-repo_known_names = ["dc_title",
-                    "viadat_narrator_name"]
-
 narrator_metadata_fields = [field for field in narrator_metadata_type['schema'].keys() if field
                             != 'status' and field != 'handle']
 
-interview_metadata_fields= [field for field in metadata_type['schema'].keys() if field
+interview_metadata_fields= [field for field in interview_metadata_type['schema'].keys() if field
                             != 'status' and field != 'handle']
 
 
@@ -402,6 +420,7 @@ def _get_narrator_metadata(metadata):
 
 
 def _get_interview_metadata(metadata):
+    metadata['viadat_interview_date'] = metadata['viadat_interview_date'].date().isoformat()
     return _metadata_to_repo_metadata(metadata, interview_metadata_fields)
 
 
@@ -467,12 +486,23 @@ def source_autodetect(source_id):
             value = value[:value.index("(")]
         return value.strip()
 
-    # TODO handle missing values
-    result = {
-        "dc_title": properties.get("přepis rozhovoru"),
-        "viadat_narrator_name":
-            cleanup(properties.get("jméno a příjmení narátora/ky"))
-    }
+    # TODO handle other values
+    result = {}
+    if "přepis rozhovoru" in properties:
+        result["dc_title"] = properties.get("přepis rozhovoru")
+    if "jméno a příjmení narátora/ky" in properties:
+        narrator_name = cleanup(properties.get("jméno a příjmení narátora/ky"))
+        narrators_db = app.data.driver.db["narrators"]
+        narrator = narrators_db.find_one(
+            {"metadata.status": "p",
+             "$text": {
+                # TODO in future we might turn this into a "\"phrase search\""
+                "$search": '{}'.format(narrator_name)
+             }
+            })
+        if narrator:
+            result["dc_relation_ispartof"] = narrator['metadata']['handle']
+
 
     return jsonify(result)
 

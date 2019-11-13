@@ -241,6 +241,7 @@ class SourceItem extends Component {
             Remove
           </Button>{" "}
           <Button
+            title="You need to publish the item first."
             disabled={this.canUpload || !!this.state.message}
             onClick={() => this.createAt()}
           >

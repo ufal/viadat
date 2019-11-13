@@ -88,7 +88,12 @@ class Export extends Component {
           this.state.readyNarrators.length === 0 &&
           <p><i>Nothing to export</i></p>}
 
-        <Button disabled={this.state.readySources.length === 0 && this.state.readyGroups.length === 0} onClick={() => this.onExport()}>Run export</Button>{" "}
+        <Button disabled={
+            this.state.readySources.length === 0 &&
+            this.state.readyGroups.length === 0 &&
+            this.state.readyNarrators.length === 0
+        }
+                onClick={() => this.onExport()}>Run export</Button>{" "}
         {this.state.statusText}
       </div>
     );
