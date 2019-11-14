@@ -78,7 +78,7 @@ export function fetch_groups(entry_id) {
 }
 
 export function fetch_transcripts(group_id) {
-  return call_service_json('transcripts?where={"group": "' + group_id + '"}');
+  return call_service_json('transcripts?where={"group": "' + group_id + '"}&embedded={"audio.source": 1}');
 }
 
 export function create_transcription(source_id) {

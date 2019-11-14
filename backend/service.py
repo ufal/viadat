@@ -63,10 +63,6 @@ simple_string = {
     "type": "string"
 }
 
-simple_number = {
-    "type": "number"
-}
-
 required_int = {
     "type": "integer",
     "required": True,
@@ -87,19 +83,9 @@ entries_schema = {
 # Dots are not supported in older versions of Eve
 # "_" are replaced by "." during export
 
-# When you add something here, you should update
-# "repo_known_names" (in this file)
-# that controls what is actually
-# exported to repo
-
-metadata_type = {
+transcript_group_metadata_type = {
     'type': 'dict',
     'schema': {
-        'handle': simple_string,
-        'dc_title': required_string,
-        'dc_date_created': {"type": "datetime", "nullable": True},
-        'dc_rights_license': simple_string,
-        'dc_relation_ispartof': required_string,
         'status': simple_string,
     }
 }
@@ -154,17 +140,9 @@ sources_schema = {
     }
 }
 
-doclink_type = {
-    'type': 'dict',
-    'schema': {
-        'source': ref("sources"),
-        'name': simple_string,
-    }
-}
-
-groups_schema = {
+transcript_group_schema = {
     'entry': ref("entries", embeddable=True, required=True),
-    'metadata': metadata_type,
+    'metadata': transcript_group_metadata_type,
 }
 
 transcripts_schema = {
@@ -174,7 +152,7 @@ transcripts_schema = {
     'audio': {
        'type': 'dict',
        'schema': {
-            'source': ref("sources"),
+            'source': ref("sources", embeddable=True),
             'uuid': simple_string,
         }
     }
@@ -217,7 +195,6 @@ lemmas_schema = {
 
 narrators_schema = {
     'metadata': narrator_metadata_type,
-    'sources': ref_list('sources', embeddable=True)
 }
 
 
@@ -249,7 +226,7 @@ settings.update({
             'cache_expires': 0,
         },
         'sources': make_domain(sources_schema),
-        'groups': make_domain(groups_schema),
+        'groups': make_domain(transcript_group_schema),
         'transcripts': make_domain(transcripts_schema),
         'labelcategories': make_domain(labelcategory_schema),
         'labels': make_domain(labels_schema),
@@ -522,6 +499,7 @@ def export():
         metadata = narrator["metadata"]
         logging.info("Exporting narrator %s", metadata["dc_title"])
         narrator_metadata = _get_narrator_metadata(metadata)
+        # TODO should be dict of field_name:value, raises ValueError - can I get info from that?
         repository_item = repository.create_narrator(narrator_metadata)
         narrators_db.update({"_id": narrator["_id"]},
                             {"$set": {"metadata.status": "p",
@@ -537,10 +515,10 @@ def export():
     for source in ready_sources:
         metadata = source["metadata"]
         logging.info("Exporting source %s", metadata["dc_title"])
-        # TODO should be dict of field_name:value, raises ValueError - can I get info from that?
         narrator = repository.find_narrator('http://hdl.handle.net/' + metadata[
             'dc_relation_ispartof'])
         interview_metadata = _get_interview_metadata(metadata)
+        # TODO should be dict of field_name:value, raises ValueError - can I get info from that?
         interview = narrator.create_interview(interview_metadata)
 
         for f in source["files"]:
@@ -554,29 +532,33 @@ def export():
 
         logging.info("Exported %s", metadata["dc_title"])
 
-    # Export transcipts
+    # Export transcripts
+    # TODO Maybe this should create a new version of the interview with the extra data
 
     groups_db = app.data.driver.db["groups"]
     transcripts_db = app.data.driver.db["transcripts"]
     ready_groups = groups_db.find({"metadata.status": "r"})
 
     for group in ready_groups:
-        metadata = group["metadata"]
-        logging.info("Exporting group %s", metadata["dc_title"])
-        item = metadata_to_repo_item(metadata)
-        remote_item = collection.create_item(item)
-        for t in transcripts_db.find({"group": group["_id"]}):
-            remote_item.add_bitstream(
+        transcripts = transcripts_db.find({"group": group["_id"]})
+        src_id = transcripts[0]["audio"]["source"]
+        src = sources_db.find_one({'_id': src_id})
+        title = src["metadata"]["dc_title"]
+        handle = src["metadata"]["handle"]
+        logging.info("Exporting transcript group for %s", title)
+        interview = repository.find_interview('http://hdl.handle.net/' + handle)
+        for t in transcripts:
+            interview.add_bitstream(
                 filename(t["uuid"]), "application/xml", t["name"] + ".xml")
             with tempfile.NamedTemporaryFile(mode="w+b") as f:
                 f.write(generate_labelfile(t["_id"]))
                 f.flush()
-                remote_item.add_bitstream(
+                interview.add_bitstream(
                     f.name, "application/xml", t["name"] + ".labels.xml")
         groups_db.update({"_id": group["_id"]},
                          {"$set": {"metadata.status": "p",
-                                   "metadata.handle": remote_item.handle}})
-        logging.info("Exported %s", metadata["dc_title"])
+                                   }})
+        logging.info("Exported transcript group for %s", title)
     return "Ok"
 
 
