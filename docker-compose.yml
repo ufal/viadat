@@ -1,7 +1,23 @@
 version: '3'
 services:
-  web:
-    container_name: viadat
+  repo:
+    image: docker.pkg.github.com/kosarko/viadat-repo-docker/viadat-repo_dspace:1.0.4
+    ports:
+        - 8080:8080
+    depends_on:
+        - repo_db
+    volumes:
+      - assetstore:/srv/dspace/assetstore
+      - solr:/srv/dspace/solr
+      - log:/srv/dspace/log
+    command: bash -c "/dspace_after_install_init/init.sh && /usr/local/tomcat/bin/catalina.sh jpda run"
+  repo_db:
+    container_name: postgres
+    image: docker.pkg.github.com/kosarko/viadat-repo-docker/viadat-repo_postgres:1.0
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  web_backend:
+    container_name: viadat_web_backend
     build: .
     environment:
     - LC_ALL=C.UTF-8
@@ -10,19 +26,46 @@ services:
     - FLASK_ENV=development
     - FLASK_APP=/viadat/backend/service.py
     ports:
-      - 3000:3000
+      # expose the backend, this eases the use of localhost:5000 from frontend
+      - 5000:5000
     dns:
       - 8.8.8.8
-
     # we want to mount the source files, but avoid overwriting the directory with installed npm modules
     volumes:
       - ./backend:/viadat/backend
+      - ./files:/viadat/files
+      - ./tests:/viadat/tests
+      - /c/Users/ko_ok/Downloads/viadat/data/:/data
+  web_frontend:
+    container_name: viadat_web_frontend
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    environment:
+      - LC_ALL=C.UTF-8
+      - LANG=C.UTF-8
+    ports:
+      - 3000:3000
+    volumes:
       - ./web/public:/viadat/web/public
       - ./web/src:/viadat/web/src
       - node_modules:/viadat/web/node_modules
-      - mongodb:/db
-      - ./files:/viadat/files
+  mongo:
+    container_name: viadat_mongo
+    image: mongo
+    volumes:
+      - mongodb:/data/db
+  # webui for inspecting mongodb
+  mongo-express:
+    container_name: viadat_mongo_express
+    image: mongo-express
+    ports:
+      - 8081:8081
 
 volumes:
   mongodb:
   node_modules:
+  assetstore:
+  solr:
+  log:
+  pgdata:

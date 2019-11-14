@@ -11,6 +11,8 @@
     "react": "^16.6.3",
     "react-addons-update": "^15.6.2",
     "react-bootstrap": "^0.31.5",
+    "react-bootstrap-table-next": "^3.2.1",
+    "react-bootstrap-table2-editor": "^1.4.0",
     "react-c3js": "^0.1.20",
     "react-color": "^2.17.0",
     "react-datepicker": "^1.8.0",

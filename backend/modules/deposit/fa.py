@@ -15,6 +15,7 @@ def force_alignment(transcript, audio_file, extension):
         calling this function, result is stored back into the
         transcript """
     def inner(tmp_dir):
+        # TODO should be "audio." + extension
         os.symlink(audio_file, "audio" + extension)
         input_file = os.path.join(tmp_dir, "input.txt")
         output_file = os.path.join(tmp_dir, "output.json")
@@ -30,6 +31,7 @@ def force_alignment(transcript, audio_file, extension):
             "python3",
             "-m", "aeneas.tools.execute_task",
             "audio" + extension, input_file,
+            # TODO language is hardcoded
             "task_language=ces|os_task_file_format=json|is_text_type=plain",
             output_file),
             stderr=subprocess.STDOUT)

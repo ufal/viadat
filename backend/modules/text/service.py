@@ -7,8 +7,8 @@ def safe_post(url, data):
         r = requests.post(url, data=data)
         if r.status_code == 200:
             return r
-        print("POST failed, retrying ...")
-        time.sleep(0.5)
+        print("POST failed, status={} {}; retrying ...".format(r.status_code, r.reason))
+        time.sleep(i * 0.5)
     else:
         raise Exception("Cannot retreive name tags")
 

@@ -28,6 +28,8 @@ import Labels from "./components/gis/Labels.js";
 import Login from "./components/Login.js";
 import Export from "./components/Export.js";
 import Stats from "./components/Stats.js";
+import Narrators from "./components/Narrators.js";
+import Narrator from "./components/Narrator.js";
 
 const ProtectedRoute = ({ component: Component, ...rest }) => (
   <Route
@@ -83,6 +85,10 @@ class App extends Component {
                 <NavItem href="">Entries</NavItem>
               </LinkContainer>
 
+              <LinkContainer to="/narrators">
+                <NavItem href="">Narrators</NavItem>
+              </LinkContainer>
+
               <LinkContainer to="/search">
                 <NavItem href="">Search</NavItem>
               </LinkContainer>
@@ -122,6 +128,8 @@ class App extends Component {
               <ProtectedRoute path="/item/:id" component={Item} />
               <ProtectedRoute path="/stats/:id" component={Stats} />
               <ProtectedRoute path="/entries" component={Entries} />
+              <ProtectedRoute path="/narrators" component={Narrators} />
+              <ProtectedRoute path="/narrator/:id" component={Narrator} />
               <ProtectedRoute path="/export" component={Export} />
               <ProtectedRoute exact path="/" component={Home} />
             </Switch>

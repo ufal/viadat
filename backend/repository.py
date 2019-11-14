@@ -1,9 +1,7 @@
+from clarindspace.viadat import ViadatRepo
 
-import clarindspace
 
-
-def get_repository_collection(settings):
-    repository = clarindspace.repository(settings["url"])
+def get_logged_in_instance(settings):
+    repository = ViadatRepo(settings["url"])
     repository.login(settings["user"], settings["password"])
-    community = repository.find_or_create_community(settings["community"])
-    return community.find_or_create_collection(settings["collection"])
+    return repository

@@ -346,7 +346,7 @@ class TextRenderer extends Component {
 
       if (this.props.lemma) {
         for (let lemma of state.document.lemmas[key]) {
-          if (lemma.value === this.props.lemma) {
+          if (this.props.lemma.includes(lemma.value)) {
             output.push({
               from: lemma.from,
               to: lemma.to,
@@ -451,8 +451,12 @@ class TextRenderer extends Component {
 
   onNewTag() {
     let selection = window.getSelection();
-    let tokens = selection.anchorNode.parentElement.id.split("-");
+    let tokens = [];
+    if(selection.anchorNode) {
+        tokens = selection.anchorNode.parentElement.id.split("-");
+    }
     if (tokens.length !== 3 || tokens[0] !== "segment") {
+      alert("Invalid selection");
       console.log("INVALID SELECTION");
       return;
     }

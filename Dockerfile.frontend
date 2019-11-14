@@ -1,0 +1,13 @@
+FROM node:8
+
+
+COPY /web/package.json /viadat/web/package.json
+RUN cd /viadat/web; npm install --no-optional --silent
+
+COPY . /viadat
+
+WORKDIR /viadat/web
+
+EXPOSE 3000
+
+CMD npm start

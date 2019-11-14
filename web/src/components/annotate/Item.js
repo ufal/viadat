@@ -19,7 +19,7 @@ class Item extends Component {
 
   render() {
     let search = this.props.location.search;
-    let query = queryString.parse(search);
+    let query = queryString.parse(search, {arrayFormat: 'bracket'});
 
     return (
       <div>

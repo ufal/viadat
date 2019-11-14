@@ -17,11 +17,12 @@ from bson.objectid import ObjectId
 from lxml import etree as et
 from backend.modules.deposit.fa import force_alignment
 from backend.modules.text import analyze
-from .repository import get_repository_collection
+from .repository import get_logged_in_instance
 from . import users
 from eve.auth import TokenAuth, requires_auth
 from backend.modules.text.tools import load_transcript
 from backend.modules.text.analyze import analyze_transcript
+from backend.settings import mongo_settings
 
 
 import io
@@ -30,7 +31,7 @@ import mimetypes
 
 import logging
 
-global REPOSITORY_SETTINGS
+REPOSITORY_SETTINGS = None
 
 
 def ref(resource, embeddable=False, required=False):
@@ -62,10 +63,6 @@ simple_string = {
     "type": "string"
 }
 
-simple_number = {
-    "type": "number"
-}
-
 required_int = {
     "type": "integer",
     "required": True,
@@ -86,26 +83,46 @@ entries_schema = {
 # Dots are not supported in older versions of Eve
 # "_" are replaced by "." during export
 
-# When you add something here, you should update
-# "repo_known_names" (in this file)
-# that controls what is actually
-# exported to repo
+transcript_group_metadata_type = {
+    'type': 'dict',
+    'schema': {
+        'status': simple_string,
+    }
+}
 
-metadata_type = {
+interview_metadata_type = {
     'type': 'dict',
     'schema': {
         'handle': simple_string,
         'dc_title': required_string,
-        'dc_date_created': {"type": "datetime", "nullable": True},
-        'dc_rights_license': simple_string,
-        'viadat_narrator_name': simple_string,
+        'viadat_interview_date': {"type": "datetime", "nullable": True},
+        'dc_identifier': simple_string,
+        'dc_rights_uri': simple_string,
+        'dc_rights': simple_string,
+        'dc_rights_label': simple_string,
+        'dc_language_iso': simple_string,
+        'dc_relation_ispartof': simple_string,
+        'status': simple_string,
+    }
+}
+
+narrator_metadata_type = {
+    'type': 'dict',
+    'schema': {
+        'handle': simple_string,
+        'dc_title': required_string,
+        'viadat_narrator_birthdate': simple_string,
+        'dc_identifier': simple_string,
+        'dc_rights_uri': simple_string,
+        'dc_rights': simple_string,
+        'dc_rights_label': simple_string,
         'status': simple_string,
     }
 }
 
 sources_schema = {
     'entry': ref("entries", embeddable=True, required=True),
-    'metadata': metadata_type,
+    'metadata': interview_metadata_type,
     'files': {
         'type': 'list',
         'schema': {
@@ -123,17 +140,9 @@ sources_schema = {
     }
 }
 
-doclink_type = {
-    'type': 'dict',
-    'schema': {
-        'source': ref("sources"),
-        'name': simple_string,
-    }
-}
-
-groups_schema = {
+transcript_group_schema = {
     'entry': ref("entries", embeddable=True, required=True),
-    'metadata': metadata_type,
+    'metadata': transcript_group_metadata_type,
 }
 
 transcripts_schema = {
@@ -143,7 +152,7 @@ transcripts_schema = {
     'audio': {
        'type': 'dict',
        'schema': {
-            'source': ref("sources"),
+            'source': ref("sources", embeddable=True),
             'uuid': simple_string,
         }
     }
@@ -184,9 +193,13 @@ lemmas_schema = {
     'transcripts': ref_list('transcripts', True),
 }
 
+narrators_schema = {
+    'metadata': narrator_metadata_type,
+}
 
-def make_domain(schema):
-    return {
+
+def make_domain(schema, **kwargs):
+    cfg = {
             "schema": schema,
             'resource_methods': ['GET', 'POST'],
             'item_methods': ['GET', 'DELETE', 'PATCH'],
@@ -194,12 +207,14 @@ def make_domain(schema):
             'cache_control': 'no-cache, no-store, must-revalidate',
             'cache_expires': 0,
     }
+    if kwargs:
+        cfg.update(kwargs)
+    return cfg
 
 
-settings = {
-    'MONGO_HOST': '127.0.0.1',
-    'MONGO_PORT': 27017,
-    'MONGO_DBNAME': 'viadat',
+settings = mongo_settings.copy()
+# TODO should we create some sort of indexes?
+settings.update({
     'PAGINATION_LIMIT': 200,
     'X_DOMAINS': "*",
     'X_HEADERS': ['Authorization', 'Content-type', 'If-Match'],
@@ -211,13 +226,16 @@ settings = {
             'cache_expires': 0,
         },
         'sources': make_domain(sources_schema),
-        'groups': make_domain(groups_schema),
+        'groups': make_domain(transcript_group_schema),
         'transcripts': make_domain(transcripts_schema),
         'labelcategories': make_domain(labelcategory_schema),
         'labels': make_domain(labels_schema),
-        'labelinstances': make_domain(labelinstance_schema)
+        'labelinstances': make_domain(labelinstance_schema),
+        # index should allow case insensitive searching, useful in autodetect
+        'narrators': make_domain(narrators_schema, mongo_indexes={'narrator_name': [(
+            'metadata.dc_title', 'text')]})
     }
-}
+})
 
 
 class TokenAuthenticator(TokenAuth):
@@ -363,20 +381,24 @@ exts = {
 }
 
 
-repo_known_names = ["dc_title",
-                    "viadat_narrator_name"]
+narrator_metadata_fields = [field for field in narrator_metadata_type['schema'].keys() if field
+                            != 'status' and field != 'handle']
+
+interview_metadata_fields= [field for field in interview_metadata_type['schema'].keys() if field
+                            != 'status' and field != 'handle']
 
 
-def metadata_to_repo_item(metadata):
-    result = []
-    for name in repo_known_names:
-        value = metadata.get(name)
-        if value:
-            result.append(
-                {"key": name.replace("_", "."),
-                 "value": value,
-                 "language": None})
-    return result
+def _metadata_to_repo_metadata(metadata, known_names):
+    return {name.replace("_", "."): metadata.get(name) for name in known_names}
+
+
+def _get_narrator_metadata(metadata):
+    return _metadata_to_repo_metadata(metadata, narrator_metadata_fields)
+
+
+def _get_interview_metadata(metadata):
+    metadata['viadat_interview_date'] = metadata['viadat_interview_date'].date().isoformat()
+    return _metadata_to_repo_metadata(metadata, interview_metadata_fields)
 
 
 def generate_labelfile(transcript_id):
@@ -432,6 +454,7 @@ def source_autodetect(source_id):
     doc = docs[0]
 
     transcript = load_transcript(filename(doc["uuid"]))
+    # TODO: why is .lower in here
     properties = {p.get("name").lower(): p.get("value")
                   for p in transcript.iter("property")}
 
@@ -440,11 +463,23 @@ def source_autodetect(source_id):
             value = value[:value.index("(")]
         return value.strip()
 
-    result = {
-        "dc_title": properties.get("přepis rozhovoru"),
-        "viadat_narrator_name":
-            cleanup(properties.get("jméno a příjmení narátora/ky"))
-    }
+    # TODO handle other values
+    result = {}
+    if "přepis rozhovoru" in properties:
+        result["dc_title"] = properties.get("přepis rozhovoru")
+    if "jméno a příjmení narátora/ky" in properties:
+        narrator_name = cleanup(properties.get("jméno a příjmení narátora/ky"))
+        narrators_db = app.data.driver.db["narrators"]
+        narrator = narrators_db.find_one(
+            {"metadata.status": "p",
+             "$text": {
+                # TODO in future we might turn this into a "\"phrase search\""
+                "$search": '{}'.format(narrator_name)
+             }
+            })
+        if narrator:
+            result["dc_relation_ispartof"] = narrator['metadata']['handle']
+
 
     return jsonify(result)
 
@@ -452,9 +487,24 @@ def source_autodetect(source_id):
 @app.route('/export', methods=['POST'])
 @requires_auth("sources")
 def export():
-    settings = REPOSITORY_SETTINGS
+    repo_settings = load_repository_config()
 
-    collection = get_repository_collection(settings)
+    repository = get_logged_in_instance(repo_settings)
+
+    # Export narrators
+    narrators_db = app.data.driver.db["narrators"]
+    ready_narrators = narrators_db.find({"metadata.status": "r"})
+
+    for narrator in ready_narrators:
+        metadata = narrator["metadata"]
+        logging.info("Exporting narrator %s", metadata["dc_title"])
+        narrator_metadata = _get_narrator_metadata(metadata)
+        # TODO should be dict of field_name:value, raises ValueError - can I get info from that?
+        repository_item = repository.create_narrator(narrator_metadata)
+        narrators_db.update({"_id": narrator["_id"]},
+                            {"$set": {"metadata.status": "p",
+                                      "metadata.handle": repository_item.handle}}
+                            )
 
     # Export sources
 
@@ -465,42 +515,50 @@ def export():
     for source in ready_sources:
         metadata = source["metadata"]
         logging.info("Exporting source %s", metadata["dc_title"])
-        item = metadata_to_repo_item(metadata)
-        remote_item = collection.create_item(item)
+        narrator = repository.find_narrator('http://hdl.handle.net/' + metadata[
+            'dc_relation_ispartof'])
+        interview_metadata = _get_interview_metadata(metadata)
+        # TODO should be dict of field_name:value, raises ValueError - can I get info from that?
+        interview = narrator.create_interview(interview_metadata)
 
         for f in source["files"]:
             logging.info("Uploading %s", f["name"])
             mime = mt.guess_type(f["name"])[0]
-            remote_item.add_bitstream(filename(f["uuid"]), mime, f["name"])
+            interview.add_bitstream(data_file_path=filename(f["uuid"]), mime_type=mime,
+                                    data_file_name=f["name"])
         sources_db.update({"_id": source["_id"]},
                           {"$set": {"metadata.status": "p",
-                                    "metadata.handle": remote_item.handle}})
+                                    "metadata.handle": interview.handle}})
 
         logging.info("Exported %s", metadata["dc_title"])
 
-    # Export transcipts
+    # Export transcripts
+    # TODO Maybe this should create a new version of the interview with the extra data
 
     groups_db = app.data.driver.db["groups"]
     transcripts_db = app.data.driver.db["transcripts"]
     ready_groups = groups_db.find({"metadata.status": "r"})
 
     for group in ready_groups:
-        metadata = group["metadata"]
-        logging.info("Exporting group %s", metadata["dc_title"])
-        item = metadata_to_repo_item(metadata)
-        remote_item = collection.create_item(item)
-        for t in transcripts_db.find({"group": group["_id"]}):
-            remote_item.add_bitstream(
+        transcripts = transcripts_db.find({"group": group["_id"]})
+        src_id = transcripts[0]["audio"]["source"]
+        src = sources_db.find_one({'_id': src_id})
+        title = src["metadata"]["dc_title"]
+        handle = src["metadata"]["handle"]
+        logging.info("Exporting transcript group for %s", title)
+        interview = repository.find_interview('http://hdl.handle.net/' + handle)
+        for t in transcripts:
+            interview.add_bitstream(
                 filename(t["uuid"]), "application/xml", t["name"] + ".xml")
             with tempfile.NamedTemporaryFile(mode="w+b") as f:
                 f.write(generate_labelfile(t["_id"]))
                 f.flush()
-                remote_item.add_bitstream(
+                interview.add_bitstream(
                     f.name, "application/xml", t["name"] + ".labels.xml")
         groups_db.update({"_id": group["_id"]},
                          {"$set": {"metadata.status": "p",
-                                   "metadata.handle": remote_item.handle}})
-        logging.info("Exported %s", metadata["dc_title"])
+                                   }})
+        logging.info("Exported transcript group for %s", title)
     return "Ok"
 
 
@@ -570,6 +628,7 @@ def upload_at(entry_id):
     metadata = {}
     metadata["dc_title"] = "Uploaded AT"
 
+    # TODO a group gets created each time we get here, errors or request methods do not matter
     g_item = {
         "entry": entry_id,
         "metadata": metadata,
@@ -596,6 +655,7 @@ def upload_at(entry_id):
             transcript = xml.getroot()
             audio = transcript.find("head").find("audio")
 
+            # TODO find_one might return None
             source = source_db.find_one({"files.hash": audio.get("hash")})
             for sf in source["files"]:
                 if sf["hash"] == audio.get("hash"):
@@ -749,10 +809,12 @@ def logout():
 
 
 def load_repository_config():
-    with open("repository.conf") as f:
-        return json.load(f)
+    global REPOSITORY_SETTINGS
+    if not REPOSITORY_SETTINGS:
+        with open("repository.conf") as f:
+            REPOSITORY_SETTINGS = json.load(f)
+    return REPOSITORY_SETTINGS
 
 
 if __name__ == '__main__':
-    REPOSITORY_SETTINGS = load_repository_config()
     app.run(threaded=True, host="0.0.0.0")

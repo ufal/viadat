@@ -175,7 +175,7 @@ class SourceItem extends Component {
   render() {
     return (
       <div>
-        <h3>{this.props.source.metadata.title}</h3>
+        <h3>{this.props.source.metadata.dc_title}</h3>
 
         <Metadata
           metadata={this.props.source.metadata}
@@ -241,6 +241,7 @@ class SourceItem extends Component {
             Remove
           </Button>{" "}
           <Button
+            title="You need to publish the item first."
             disabled={this.canUpload || !!this.state.message}
             onClick={() => this.createAt()}
           >
@@ -254,12 +255,6 @@ class SourceItem extends Component {
 }
 
 class GroupItem extends Component {
-  updateMetadata(metadata) {
-    update_group(this.props.group, { metadata: metadata }).then(() => {
-      this.props.entry.reload();
-    });
-  }
-
   onRemove = () => {
     if (window.confirm("Remove group?")) {
       remove_group(this.props.group).then(() => {
@@ -271,14 +266,10 @@ class GroupItem extends Component {
   render() {
     return (
       <div>
-        <h3>{this.props.group.metadata.title}</h3>
-
-        <Metadata
-          metadata={this.props.group.metadata}
-          onUpdate={m => this.updateMetadata(m)}
-        />
-
         {this.props.group.transcripts.length !== 0 && (
+        <div >
+        <h3>{this.props.group.transcripts[0].audio.source.metadata.dc_title}</h3>
+
           <div>
             <Table responsive>
               <thead>
@@ -319,9 +310,31 @@ class GroupItem extends Component {
               </tbody>
             </Table>
             <Button onClick={this.onRemove}>Remove</Button>
+            {this.props.group.metadata.status !== 'p' &&
+            <Button
+                onClick={e => {
+                  const newStatus = this.props.group.metadata.status === 'r' ? 'x' : 'r';
+                  const updated = {
+                    group: {
+                      metadata: {
+                        status: newStatus
+                      }
+                    }
+                  };
+                  update_group(this.props.group, updated.group).then(() => {
+                    this.props.entry.reload()
+                  });
+                }
+                }
+            >
+              Set as {this.props.group.metadata.status === 'r' ? 'private' :
+                'ready'}
+            </Button>
+            }
           </div>
-        )}
         <p />
+        </div>
+        )}
       </div>
     );
   }
@@ -403,6 +416,8 @@ class Entry extends Component {
   }
 
   render() {
+    // TODO Upload AT should be shown probably only when there are source files
+    // TODO Should I have the option to create AT if one was already created?
     return (
       <div>
         {this.state.entry && (

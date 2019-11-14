@@ -15,11 +15,23 @@ def validate_tokenizer(element):
     return None
 
 
+def _morpohodita_lemmatize(text, output_format="json"):
+    """Helper function to ensure we use the same calls every time (e.g. strip_lemma_comment)"""
+    return safe_post(
+        "http://lindat.mff.cuni.cz/services/morphodita/api/tag",
+        {
+            "data": text,
+            "convert_tagset": "strip_lemma_comment",
+            "output": output_format
+         }
+    ).json()
+
+
 def get_lemmas(string):
     """ Connects Morphidata and returns lemmas in the input string """
-    r = safe_post(
-             "http://lindat.mff.cuni.cz/services/morphodita/api/tag",
-             {"data": string}).json()
+    r = _morpohodita_lemmatize(string, "xml")
+    # TODO can all the lemmas be lowercased? seems more natural that ivan/Ivan returns the same
+    # thought this is decided by the lemmatizer
     xml = "<root>{}</root>".format(r["result"])
     root = et.fromstring(xml)
     return [t.get("lemma") for t in root.iter("token")]
@@ -28,13 +40,10 @@ def get_lemmas(string):
 def insert_lemmas(transcript):
     """ Insert lemmas into transcript """
     sections = transcript.find("sections")
+    # TODO could be async?
     for p in transcript.find("body").iter("p"):
         text = p.text
-        r = safe_post(
-                 "http://lindat.mff.cuni.cz/services/morphodita/api/tag",
-                 {"data": p.text,
-                  "convert_tagset": "strip_lemma_comment",
-                  "output": "json"}).json()
+        r = _morpohodita_lemmatize(text)
         offset = 0
         for sentence in r["result"]:
             for token in sentence:
@@ -130,5 +139,5 @@ def analyze_transcript(transcript):
     tokenize(transcript)
     insert_lemmas(transcript)
     # insert_name_tags(transcript)
-    print("TRANSCRIPT: ", et.tostring(transcript, pretty_print=True).decode())
+    #print("TRANSCRIPT: ", et.tostring(transcript, pretty_print=True).decode())
     return transcript

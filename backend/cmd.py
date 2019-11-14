@@ -9,6 +9,7 @@ from backend.modules.deposit.fa import force_alignment
 from .fs.filestore import store, copy_to_store
 from lxml import etree as et
 from backend.modules.text.index import index_lemmas, index_nametags
+from backend.settings import mongo_settings
 
 from pymongo import MongoClient
 
@@ -124,8 +125,8 @@ def find_matching_file(name, extensions, filenames):
 
 
 def connect_to_db():
-    client = MongoClient("localhost")
-    return client.viadat
+    client = MongoClient(host=mongo_settings['MONGO_HOST'], port=mongo_settings['MONGO_PORT'])
+    return client[mongo_settings['MONGO_DBNAME']]
 
 
 def import_dir(path):
