@@ -31,7 +31,7 @@ def load_config():
         return yaml.safe_load(fh)
 
 
-def update_module(source_dir, name, path, repository, commit_msg):
+def update_module(source_dir, name, paths, repository, commit_msg):
     print(f'\nUpdating module {name}:')
     cwd = os.getcwd()
 
@@ -45,7 +45,13 @@ def update_module(source_dir, name, path, repository, commit_msg):
                 '- repository cloned',
                 '- repository cloning failed'
             )
-            shutil.copytree(os.path.join(source_dir, path), new_dir)
+            for path in paths:
+                src = os.path.join(source_dir, path)
+                if os.path.isdir(src):
+                    shutil.copytree(src, new_dir)
+                else:
+                    os.makedirs(new_dir, exist_ok=True)
+                    shutil.copy(src, new_dir)
             shutil.copytree(os.path.join(old_dir, '.git'), os.path.join(new_dir, '.git'))
             print('- new version created')
 
@@ -96,7 +102,7 @@ def main():
         )
 
         for module, info in cfg['modules'].items():
-            update_module(main_repo_dir, module, info['path'], info['repo'], sys.argv[1])
+            update_module(main_repo_dir, module, info['paths'], info['repo'], sys.argv[1])
 
 
 if __name__ == '__main__':

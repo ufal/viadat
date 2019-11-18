@@ -2,20 +2,33 @@ main: git@github.com:ufal/viadat.git
 
 modules:
   deposit:
-    path: backend/modules/deposit
+    paths:
+      - backend/modules/deposit
     repo: git@github.com:ufal/VIADAT-DEPOSIT.git
   text:
-    path: backend/modules/text
+    paths:
+      - backend/modules/text
     repo: git@github.com:ufal/VIADAT-TEXT.git
   annotate:
-    path: web/src/components/annotate
+    paths:
+      - web/src/components/annotate
     repo: git@github.com:ufal/VIADAT-ANNOTATE.git
   gis:
-    path: web/src/components/gis
+    paths:
+      - web/src/components/gis
     repo: git@github.com:ufal/VIADAT-GIS.git
   search:
-    path: web/src/components/search
+    paths:
+      - web/src/components/search
     repo: git@github.com:ufal/VIADAT-SEARCH.git
   analyze:
-    path: web/src
+    paths:
+      - web/src
     repo: git@github.com:ufal/VIADAT-ANALYZE.git
+  stat:
+    repo: git@github.com:ufal/VIADAT-STAT
+    paths:
+      - web/src/components/Stats.js
+      - web/src/components/annotate/models/document.js
+      - web/src/services/entries.js
+      - backend/service.py
