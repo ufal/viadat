@@ -35,7 +35,6 @@ services:
       - ./backend:/viadat/backend
       - ./files:/viadat/files
       - ./tests:/viadat/tests
-      - /c/Users/ko_ok/Downloads/viadat/data/:/data
   web_frontend:
     container_name: viadat_web_frontend
     build:
