@@ -6,6 +6,7 @@ from lxml import etree as et
 from backend.utils.xml import element_to_text
 import zipfile
 import re
+import logging
 
 ns_text = '{urn:oasis:names:tc:opendocument:xmlns:text:1.0}'
 ns_style = '{urn:oasis:names:tc:opendocument:xmlns:style:1.0}'
