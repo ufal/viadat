@@ -449,7 +449,7 @@ def source_autodetect(source_id):
     docs = [f for f in source["files"] if f["kind"] == "doc"]
 
     if not docs:
-        return jsonify({"error": "No source document found"})
+        abort(404, description="No source document found")
 
     doc = docs[0]
 
@@ -639,7 +639,8 @@ def upload_at(entry_id):
         files = request.files.getlist("file")
         for f in files:
             if not f.filename.endswith(".xml"):
-                return jsonify("ERROR: Invalid file: {}".format(f.filename))
+                abort(404, description="ERROR: Invalid file: {}. Expecting *.xml".format(
+                    f.filename))
 
         at_files = [f for f in files if not f.filename.endswith(".labels.xml")]
 
@@ -723,10 +724,10 @@ def create_at(source_id):
     audios = [f for f in source["files"] if f["kind"] == "audio"]
 
     if not docs:
-        return jsonify("Error: No documents")
+        abort(404, description="Error: No documents")
 
     if len(docs) != len(audios):
-        return jsonify("Error: Number of audio files does not match documents")
+        abort(404, description="Error: Number of audio files does not match documents")
 
     docs.sort(key=lambda f: f["name"])
     audios.sort(key=lambda f: f["name"])
@@ -740,8 +741,8 @@ def create_at(source_id):
                 transcript, filename(audio["uuid"]), "mp3")
         except Exception as e:
             logging.error(e)
-            return jsonify("Force alignment of {}/{} failed"
-                           .format(doc["name"], audio["name"]))
+            abort(404, description="Force alignment of {}/{} failed".format(doc["name"],
+                                                                            audio["name"]))
         element = et.Element("audio")
         element.set("hash", audio["hash"])
         element.set("handle", source["metadata"]["handle"])
@@ -814,6 +815,11 @@ def load_repository_config():
         with open("repository.conf") as f:
             REPOSITORY_SETTINGS = json.load(f)
     return REPOSITORY_SETTINGS
+
+
+@app.errorhandler(404)
+def error(e):
+    return jsonify(error=str(e)), 404
 
 
 if __name__ == '__main__':
