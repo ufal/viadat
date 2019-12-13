@@ -315,6 +315,7 @@ def on_delete_group(group):
 
     for transcript in transcripts:
         os.remove(filename(transcript["uuid"]))
+        transcripts_db.remove(transcript)
 
 
 app.on_delete_item_groups = on_delete_group
