@@ -47,6 +47,7 @@ def analyze(path):
 
 def import_entry(db, items, name):
 
+    # TODO this reflects some sort of previous version; eg. entryitems db is only in this file
     transcripts = []
     for doc_path, audio_path in items:
         path = os.path.abspath(doc_path)
@@ -183,6 +184,9 @@ def main():
     elif args.command == "analyze":
         analyze(args.doc)
     elif args.command == "import-dir":
+        print("ERR: import-dir is outdated and not working")
+        import sys
+        sys.exit(1)
         import_dir(args.path)
 
 
