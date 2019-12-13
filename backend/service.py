@@ -596,7 +596,7 @@ def upload_entry_item(source_id):
 def find_or_create(db, data):
     item = db.find_one(data)
     if item is None:
-        item = db.insert_one(data).inserted_id
+        return db.insert_one(data).inserted_id
     else:
         return item["_id"]
 
@@ -655,6 +655,9 @@ def upload_at(entry_id):
 
             transcript = xml.getroot()
             audio = transcript.find("head").find("audio")
+            if audio is None:
+                abort(404, description="{} does not contain head or audio section.".format(
+                    upload_file.filename))
 
             # TODO find_one might return None
             source = source_db.find_one({"files.hash": audio.get("hash")})
@@ -663,7 +666,7 @@ def upload_at(entry_id):
                     break
 
             t_item = {
-                "name": upload_file.filename,
+                "name": upload_file.filename[:-4],
                 "group": group_id,
                 "uuid": uid,
                 "audio": {

@@ -12,6 +12,7 @@ let FilePicker = props => {
         ref={e => (inputElement = e)}
         style={{ display: "none" }}
         type="file"
+        accept={props.accept}
       />
       <Button
         onClick={() => {
@@ -70,7 +71,9 @@ export class Upload extends Component {
           {this.state.uploading && <Alert bsStyle="info">Uploading ...</Alert>}
           {!this.state.uploading && (
             <div>
-              <FilePicker onChange={files => this.addFiles(files)} />
+              <FilePicker onChange={files => this.addFiles(files)}
+                          accept={props.accept}
+              />
               <Table responsive>
                 <thead>
                   <tr>

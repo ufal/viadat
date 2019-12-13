@@ -38,7 +38,13 @@ export function upload_at_files(entry_id, files) {
   for (let f of files) {
     data.append("file", f);
   }
-  return call_raw_service("upload-at/" + entry_id, data);
+  return call_raw_service("upload-at/" + entry_id, data).then(response=>{
+    if(response.ok){
+      return response;
+    }else{
+      return Promise.reject(response);
+    }
+  });
 }
 
 export function fetch_sources(entry_id) {

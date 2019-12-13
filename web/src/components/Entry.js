@@ -269,7 +269,6 @@ class GroupItem extends Component {
         {this.props.group.transcripts.length !== 0 && (
         <div >
         <h3>{this.props.group.transcripts[0].audio.source.metadata.dc_title}</h3>
-
           <div>
             <Table responsive>
               <thead>
@@ -309,7 +308,6 @@ class GroupItem extends Component {
                 })}
               </tbody>
             </Table>
-            <Button onClick={this.onRemove}>Remove</Button>
             {this.props.group.metadata.status !== 'p' &&
             <Button
                 onClick={e => {
@@ -335,6 +333,7 @@ class GroupItem extends Component {
         <p />
         </div>
         )}
+        <Button onClick={this.onRemove}>Remove</Button>
       </div>
     );
   }
@@ -398,7 +397,12 @@ class Entry extends Component {
         update(this.state, { showAtUploadDialog: { $set: false } })
       );
       this.reload();
-    });
+    },
+      err => {
+        console.error("The uploadAtFiles response was not OK.\n");
+        err.json().then(jserr=>{window.alert(jserr.error)});
+      }
+    );
   }
 
   onRemove = () => {
@@ -464,6 +468,7 @@ class Entry extends Component {
             </p>
             <Upload
               show={this.state.showAtUploadDialog}
+              accept=".xml"
               onUpload={files => this.uploadAtFiles(files)}
               onClose={() =>
                 this.setState(
