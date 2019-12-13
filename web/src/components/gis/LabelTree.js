@@ -464,7 +464,10 @@ class LabelTree extends Component {
   render() {
     return (
       <div>
+          <h2>Filter the existing labels</h2>
         {this.props.showMap && (
+            <div>
+              <h3>By selecting an area on the map</h3>
           <AreaSelectorMapView
             viewport={{ center: [50.0884, 14.40402], zoom: 16 }}
             onSelect={this.onMapFilter}
@@ -477,29 +480,11 @@ class LabelTree extends Component {
                 </MyMarker>
               ))}
           </AreaSelectorMapView>
+            </div>
         )}
+        <h3>By setting a date filter</h3>
         <DateFilter onChange={this.onDateFilterChange} />
-        <Button
-          onClick={() =>
-            this.setState(
-              update(this.state, { showNewTopLevel: { $set: true } })
-            )
-          }
-        >
-          New top level category
-        </Button>
-        <Collapse in={this.state.showNewTopLevel}>
-          <div>
-            <CategoryEditor
-              onSubmit={c => this.onNewTopLevel(c)}
-              onCancel={() =>
-                this.setState(
-                  update(this.state, { showNewTopLevel: { $set: false } })
-                )
-              }
-            />
-          </div>
-        </Collapse>
+        <h3>Edit the existing categories</h3>
         <ListGroup>
           {this.state.nodes.map(node => (
             <LabelCategory
@@ -511,6 +496,28 @@ class LabelTree extends Component {
             />
           ))}
         </ListGroup>
+          <h3>Create new</h3>
+        <Button
+            onClick={() =>
+                this.setState(
+                    update(this.state, { showNewTopLevel: { $set: true } })
+                )
+            }
+        >
+          New top level category
+        </Button>
+        <Collapse in={this.state.showNewTopLevel}>
+          <div>
+            <CategoryEditor
+                onSubmit={c => this.onNewTopLevel(c)}
+                onCancel={() =>
+                    this.setState(
+                        update(this.state, { showNewTopLevel: { $set: false } })
+                    )
+                }
+            />
+          </div>
+        </Collapse>
       </div>
     );
   }
