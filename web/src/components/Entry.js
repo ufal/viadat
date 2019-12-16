@@ -126,7 +126,10 @@ const LabelDownloadLink = props => (
 class SourceItem extends Component {
   constructor(props) {
     super(props);
-    this.state = { showUploadDialog: false };
+    this.state = {
+      showUploadDialog: false,
+      showAtUploadDialog: false,
+    };
   }
 
   uploadFiles(files) {
@@ -171,6 +174,21 @@ class SourceItem extends Component {
       });
     }
   };
+
+  uploadAtFiles(files) {
+    return upload_at_files(this.props.entry.state.entry._id, files).then(() => {
+          this.setState(
+              update(this.state, { showAtUploadDialog: { $set: false } })
+          );
+          this.props.entry.reload();
+        },
+        err => {
+          console.error("The uploadAtFiles response was not OK.\n");
+          err.json().then(jserr=>{window.alert(jserr.error)});
+        }
+    );
+  }
+
 
   render() {
     return (
@@ -241,13 +259,38 @@ class SourceItem extends Component {
             Remove
           </Button>{" "}
           <Button
-            title="You need to publish the item first."
-            disabled={this.canUpload || !!this.state.message}
+            title={this.canUpload ? "You need to publish the item first." :
+                   this.props.hasAT ? "The AT was alreadry created." :
+                                        "Create the annotated transcript"}
+            disabled={this.canUpload || this.props.hasAT}
             onClick={() => this.createAt()}
           >
             Create AT
           </Button>{" "}
           {this.state.message}
+          <Button
+              title={this.canUpload ? "You need to publish the item first." :
+                  this.props.hasAT ? "The AT was alreadry created." :
+                      "Create the annotated transcript"}
+              disabled={this.canUpload || this.props.hasAT}
+              onClick={() =>
+                  this.setState(
+                      update(this.state, { showAtUploadDialog: { $set: true } })
+                  )
+              }
+          >
+            Upload AT
+          </Button>
+          <Upload
+              show={this.state.showAtUploadDialog}
+              accept=".xml"
+              onUpload={files => this.uploadAtFiles(files)}
+              onClose={() =>
+                  this.setState(
+                      update(this.state, { showAtUploadDialog: { $set: false } })
+                  )
+              }
+          />
         </p>
       </div>
     );
@@ -346,7 +389,6 @@ class Entry extends Component {
       entry: null,
       sources: [],
       groups: [],
-      showAtUploadDialog: false,
       showNameDialog: false,
     };
   }
@@ -391,20 +433,6 @@ class Entry extends Component {
     });
   }
 
-  uploadAtFiles(files) {
-    return upload_at_files(this.state.entry._id, files).then(() => {
-      this.setState(
-        update(this.state, { showAtUploadDialog: { $set: false } })
-      );
-      this.reload();
-    },
-      err => {
-        console.error("The uploadAtFiles response was not OK.\n");
-        err.json().then(jserr=>{window.alert(jserr.error)});
-      }
-    );
-  }
-
   onRemove = () => {
     if (window.confirm("Remove entry?")) {
      remove_entry(this.state.entry).then(() => {
@@ -419,9 +447,20 @@ class Entry extends Component {
     })
   }
 
+  hasAT(source, groups) {
+    for (const group of groups){
+      for (const t of group.transcripts){
+        if(t.audio.source._id === source._id){
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+
   render() {
     // TODO Upload AT should be shown probably only when there are source files
-    // TODO Should I have the option to create AT if one was already created?
     return (
       <div>
         {this.state.entry && (
@@ -449,33 +488,12 @@ class Entry extends Component {
             <ListGroup>
               {this.state.sources.map(s => (
                 <ListGroupItem key={s._id}>
-                  <SourceItem source={s} entry={this} />
+                  <SourceItem source={s} entry={this} hasAT={this.hasAT(s, this.state.groups)} />
                 </ListGroupItem>
               ))}
             </ListGroup>
 
             <h2>Annotated Transcripts</h2>
-            <p>
-              <Button
-                onClick={() =>
-                  this.setState(
-                    update(this.state, { showAtUploadDialog: { $set: true } })
-                  )
-                }
-              >
-                Upload AT
-              </Button>
-            </p>
-            <Upload
-              show={this.state.showAtUploadDialog}
-              accept=".xml"
-              onUpload={files => this.uploadAtFiles(files)}
-              onClose={() =>
-                this.setState(
-                  update(this.state, { showAtUploadDialog: { $set: false } })
-                )
-              }
-            />
             <ListGroup>
               {this.state.groups.map(s => (
                 <ListGroupItem key={s._id}>
