@@ -311,7 +311,7 @@ class GroupItem extends Component {
       <div>
         {this.props.group.transcripts.length !== 0 && (
         <div >
-        <h3>{this.props.group.transcripts[0].audio.source.metadata.dc_title}</h3>
+        <h3>{this.props.group.transcripts[0].audio.source.metadata.dc_title} ({this.props.group.metadata.dc_title})</h3>
           <div>
             <Table responsive>
               <thead>
@@ -376,7 +376,9 @@ class GroupItem extends Component {
         <p />
         </div>
         )}
-        <Button onClick={this.onRemove}>Remove</Button>
+        <Button disabled={this.props.group.metadata.status === 'p'}
+                title={this.props.group.metadata.status === 'p' ? "This AT was already published" : "Remove the AT."}
+                onClick={this.onRemove}>Remove</Button>
       </div>
     );
   }
@@ -460,7 +462,6 @@ class Entry extends Component {
 
 
   render() {
-    // TODO Upload AT should be shown probably only when there are source files
     return (
       <div>
         {this.state.entry && (

@@ -33,33 +33,38 @@ class Export extends Component {
   }
 
   onExport() {
-    this.setState(
-      update(this.state, { statusText: { $set: "Exporting ..." } })
-    );
-    run_export().then(
-      r => {
-        this.refresh();
-        if (r.status === 200) {
+      if (window.confirm("The data of items that have been exported cannot be modified (or" +
+          " removed) in the future.\nUnless you create a \"new version\"." +
+          "\nDo you really want to continue?")) {
           this.setState(
-            update(this.state, { statusText: { $set: "Exported" } })
+              update(this.state, {statusText: {$set: "Exporting ..."}})
           );
-        } else {
-          this.setState(
-            update(this.state, {
-              statusText: { $set: "Error: " + r.statusText }
-            })
+          run_export().then(
+              r => {
+                  this.refresh();
+                  if (r.status === 200) {
+                      this.setState(
+                          update(this.state, {statusText: {$set: "Exported"}})
+                      );
+                  } else {
+                      this.setState(
+                          update(this.state, {
+                              statusText: {$set: "Error: " + r.statusText}
+                          })
+                      );
+                  }
+              },
+              e => {
+                  this.setState(
+                      update(this.state, {statusText: {$set: "Error: " + e}})
+                  );
+              }
           );
-        }
-      },
-      e => {
-        this.setState(
-          update(this.state, { statusText: { $set: "Error: " + e } })
-        );
       }
-    );
   }
 
   render() {
+      //TODO add links back to source/narrator/group
     return (
       <div>
         <h1>Export</h1>
