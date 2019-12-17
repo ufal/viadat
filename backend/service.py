@@ -660,8 +660,14 @@ def upload_at(entry_id):
                 abort(404, description="{} does not contain head or audio section.".format(
                     upload_file.filename))
 
-            # TODO find_one might return None
-            source = source_db.find_one({"files.hash": audio.get("hash")})
+            if "hash" in audio.attrib:
+                source = source_db.find_one({"files.hash": audio.get("hash")})
+                if source is None:
+                    abort(404, description="Given hash {} does not match any audio file.".format(
+                        audio.get("hash")))
+            else:
+                abort(404, description="Expecting hash attribute in head/audio")
+
             for sf in source["files"]:
                 if sf["hash"] == audio.get("hash"):
                     break
@@ -749,7 +755,6 @@ def create_at(source_id):
                                                                             audio["name"]))
         element = et.Element("audio")
         element.set("hash", audio["hash"])
-        element.set("handle", source["metadata"]["handle"])
         transcript.find("head").append(element)
         transcripts.append(transcript)
 
