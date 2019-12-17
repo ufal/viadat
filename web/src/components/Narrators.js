@@ -12,6 +12,7 @@ import {
 import { Link } from "react-router-dom";
 
 import { create_narrator, fetch_narrators } from "../services/narrators";
+import {fetch_all_sources} from "../services/entries";
 
 const fields = ['dc_title', 'viadat_narrator_birthdate', 'dc_identifier',
     'dc_rights_uri', 'dc_rights', 'dc_rights_label'];
@@ -33,9 +34,15 @@ class NewNarratorForm extends Component {
                 'dc_rights_uri': 'https://ufal.mff.cuni.cz/grants/viadat/license',
                 'dc_rights': 'VIADAT License',
                 'dc_rights_label': 'RES'
-            }
+            },
+            all_sources: [],
+            all_narrators: [],
         };
         this.state = this.initState;
+    }
+
+    componentDidMount() {
+        this.reset();
     }
 
     onSubmit(e) {
@@ -48,19 +55,34 @@ class NewNarratorForm extends Component {
 
     reset() {
         this.setState(this.initState);
+        fetch_all_sources().then(data => {
+            this.setState(update(this.state, {all_sources: {$set: data._items}}));
+        });
+        fetch_narrators().then(data => {
+            this.setState(update(this.state, {all_narrators: {$set: data._items}}));
+        });
     }
 
     getValidationState() {
         const md  = this.state.metadata;
         for (const key of ["dc_title", "viadat_narrator_birthdate", "dc_identifier"]){
-            if(this.validateField(md[key]) !== 'success'){
+            if(this.validateField(key, md[key]) !== 'success'){
                 return "error";
             }
         }
         return "success";
     }
 
-    validateField(field_value){
+    validateField(field, field_value){
+        if(field === 'dc_identifier'){
+            for (const entitiesWithMetadata of [this.state.all_sources, this.state.all_narrators]) {
+                for (const {metadata: {dc_identifier: sig}} of entitiesWithMetadata) {
+                    if (field_value === sig) {
+                        return 'error';
+                    }
+                }
+            }
+        }
         if(field_value){
             return "success";
         }else {
@@ -76,7 +98,7 @@ class NewNarratorForm extends Component {
                         {fields.map((field, index) => {
                             return (
                                 <div key={field}>
-                                <FormGroup validationState={this.validateField(this.state.metadata[field])}>
+                                <FormGroup validationState={this.validateField(field, this.state.metadata[field])}>
                                 <ControlLabel>{field2display[field]}</ControlLabel>
                                 <FormControl
                                     type="text"

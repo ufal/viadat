@@ -47,6 +47,10 @@ export function upload_at_files(entry_id, files) {
   });
 }
 
+export function fetch_all_sources(){
+  return call_service_json('sources')
+}
+
 export function fetch_sources(entry_id) {
   return call_service_json('sources?where={"entry": "' + entry_id + '"}');
 }
