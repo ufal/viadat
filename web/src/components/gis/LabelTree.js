@@ -259,14 +259,14 @@ class LabelCategory extends Component {
           return false;
         }
         if (label.from_date && to_date) {
-          let d = new Date(label.from_date);
-          if (d > to_date) {
+          let begin = new Date(label.from_date);
+          if (begin > to_date) {
             return false;
           }
         }
         if (label.to_date && from_date) {
-          let d = new Date(label.from_date);
-          if (d < from_date) {
+          let end = new Date(label.to_date);
+          if (end < from_date) {
             return false;
           }
         }
@@ -483,6 +483,7 @@ class LabelTree extends Component {
             </div>
         )}
         <h3>By setting a date filter</h3>
+        <p>Show only those labels having a date range that intersects what you specify here.</p>
         <DateFilter onChange={this.onDateFilterChange} />
         <h3>Edit the existing categories</h3>
         <ListGroup>
