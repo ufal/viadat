@@ -292,6 +292,16 @@ class SourceItem extends Component {
               }
           />
         </p>
+        <h2>Annotated Transcript</h2>
+        <ListGroup>
+          {this.props.entry.state.groups.filter(g =>
+              g.transcripts && g.transcripts[0] && g.transcripts[0].audio.source._id === this.props.source._id
+          ).map(s => (
+              <ListGroupItem key={s._id}>
+                <GroupItem group={s} entry={this.props.entry} />
+              </ListGroupItem>
+          ))}
+        </ListGroup>
       </div>
     );
   }
@@ -311,7 +321,7 @@ class GroupItem extends Component {
       <div>
         {this.props.group.transcripts.length !== 0 && (
         <div >
-        <h3>{this.props.group.transcripts[0].audio.source.metadata.dc_title} ({this.props.group.metadata.dc_title})</h3>
+        <h3>{this.props.group.metadata.dc_title}</h3>
           <div>
             <Table responsive>
               <thead>
@@ -490,15 +500,6 @@ class Entry extends Component {
               {this.state.sources.map(s => (
                 <ListGroupItem key={s._id}>
                   <SourceItem source={s} entry={this} hasAT={this.hasAT(s, this.state.groups)} />
-                </ListGroupItem>
-              ))}
-            </ListGroup>
-
-            <h2>Annotated Transcripts</h2>
-            <ListGroup>
-              {this.state.groups.map(s => (
-                <ListGroupItem key={s._id}>
-                  <GroupItem group={s} entry={this} />
                 </ListGroupItem>
               ))}
             </ListGroup>
