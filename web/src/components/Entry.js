@@ -18,6 +18,7 @@ import {
   autodetect_source_metadata,
   create_source,
   create_transcription,
+  duplicate_source,
   fetch_entry,
   fetch_groups,
   fetch_sources,
@@ -33,6 +34,7 @@ import {
 } from "../services/entries";
 import { Metadata } from "./Metadata";
 import { Upload } from "./Upload";
+import "./entry.css";
 
 
 class EntryNameDialog extends Component {
@@ -189,6 +191,16 @@ class SourceItem extends Component {
     );
   }
 
+  onDuplicate(source) {
+    if (window.confirm("This will clone the source item, you'll have to export it again with a" +
+        " different signature.\nYou can then create new AT or upload the AT and labels you have" +
+        " here.")) {
+      duplicate_source(source._id).then(() =>
+          this.props.entry.reload()
+      );
+    }
+  }
+
 
   render() {
     return (
@@ -291,6 +303,12 @@ class SourceItem extends Component {
                   )
               }
           />
+          <Button
+              title="Duplicate"
+              onClick={() => this.onDuplicate(this.props.source)}
+          >
+            <Glyphicon glyph="duplicate" />{" "}
+          </Button>
         </p>
         <h2>Annotated Transcript</h2>
         <ListGroup>
@@ -498,7 +516,7 @@ class Entry extends Component {
             </p>
             <ListGroup>
               {this.state.sources.map(s => (
-                <ListGroupItem key={s._id}>
+                <ListGroupItem key={s._id} className="sourceItem">
                   <SourceItem source={s} entry={this} hasAT={this.hasAT(s, this.state.groups)} />
                 </ListGroupItem>
               ))}

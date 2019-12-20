@@ -5,6 +5,11 @@ import {
   call_raw_service
 } from "./utils.js";
 
+export function duplicate_source(source_id) {
+  return call_service_json("duplicate", {_id:source_id});
+}
+
+
 export function fetch_entries() {
   return call_service_json("entries");
 }

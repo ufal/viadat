@@ -3,7 +3,7 @@ This is the main backend module that controls whole REST service
 """
 
 from eve import Eve
-from .fs.filestore import store, filename, load, filesize, compute_hash
+from .fs.filestore import store, filename, load, filesize, compute_hash, copy_to_store
 from backend.modules.deposit import cut
 from flask_cors import CORS
 from flask import jsonify, abort, Response
@@ -793,6 +793,45 @@ def create_at(source_id):
                             {"$push": {"transcripts": transcript_id}}, True)
 
     return jsonify("Ok")
+
+
+@app.route('/duplicate', methods=['POST'])
+@requires_auth("sources")
+def duplicate():
+    data = request.get_json()
+    id = data.get('_id', None)
+    if id:
+        sources_db = app.data.driver.db["sources"]
+        source_id = ObjectId(id)
+        source = sources_db.find_one({"_id": source_id})
+        if not source:
+            abort(404, description="No source found belonging to the given id \"{}\"".format(id))
+        else:
+            metadata = source['metadata']
+            for key in ['handle', 'dc_identifier', 'status']:
+                if key in metadata:
+                    del metadata[key]
+            files = []
+            for f in source['files']:
+                uid = str(uuid.uuid4())
+                copy_to_store(filename(f['uuid']), uid)
+                file_clone = {
+                    'name': f['name'],
+                    'kind': f['kind'],
+                    'file_type': f['file_type'],
+                    'uuid': uid,
+                    'size': f['size'],
+                    'hash': f['hash']
+                }
+                files.append(file_clone)
+            sources_db.insert({
+                'entry': source['entry'],
+                'metadata': metadata,
+                'files': files
+            })
+            return jsonify("Ok")
+    else:
+        abort(404, description="Missing _id in the posted resource")
 
 
 @app.route('/login', methods=['POST'])
