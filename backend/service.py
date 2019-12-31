@@ -3,7 +3,7 @@ This is the main backend module that controls whole REST service
 """
 
 from eve import Eve
-from .fs.filestore import store, filename, load, filesize, compute_hash
+from .fs.filestore import store, filename, load, filesize, compute_hash, copy_to_store
 from backend.modules.deposit import cut
 from flask_cors import CORS
 from flask import jsonify, abort, Response
@@ -315,6 +315,7 @@ def on_delete_group(group):
 
     for transcript in transcripts:
         os.remove(filename(transcript["uuid"]))
+        transcripts_db.remove(transcript)
 
 
 app.on_delete_item_groups = on_delete_group
@@ -449,7 +450,7 @@ def source_autodetect(source_id):
     docs = [f for f in source["files"] if f["kind"] == "doc"]
 
     if not docs:
-        return jsonify({"error": "No source document found"})
+        abort(404, description="No source document found")
 
     doc = docs[0]
 
@@ -596,7 +597,7 @@ def upload_entry_item(source_id):
 def find_or_create(db, data):
     item = db.find_one(data)
     if item is None:
-        item = db.insert_one(data).inserted_id
+        return db.insert_one(data).inserted_id
     else:
         return item["_id"]
 
@@ -610,9 +611,9 @@ def find_or_create_category(full_category_name):
     return category_id
 
 
-@app.route('/upload-at/<entry_id>', methods=['GET', 'POST'])
+@app.route('/upload-at/<source_id>', methods=['GET', 'POST'])
 @requires_auth("sources")
-def upload_at(entry_id):
+def upload_at(source_id):
     entry_db = app.data.driver.db["entries"]
     source_db = app.data.driver.db["sources"]
     group_db = app.data.driver.db["groups"]
@@ -621,12 +622,16 @@ def upload_at(entry_id):
     labels_db = app.data.driver.db["labels"]
     labelinstances_db = app.data.driver.db["labelinstances"]
 
-    entry_id = ObjectId(entry_id)
+    source_id = ObjectId(source_id)
+    source = source_db.find_one({"_id": source_id})
+    if source is None:
+        abort(404, description="ERROR: Source with id {} not found".format(source_id))
+
+    entry_id = source["entry"]
     entry = entry_db.find_one({"_id": entry_id})
     assert entry  # TODO 404
 
-    metadata = {}
-    metadata["dc_title"] = "Uploaded AT"
+    metadata = {"dc_title": "Uploaded AT"}
 
     # TODO a group gets created each time we get here, errors or request methods do not matter
     g_item = {
@@ -639,7 +644,8 @@ def upload_at(entry_id):
         files = request.files.getlist("file")
         for f in files:
             if not f.filename.endswith(".xml"):
-                return jsonify("ERROR: Invalid file: {}".format(f.filename))
+                abort(404, description="ERROR: Invalid file: {}. Expecting *.xml".format(
+                    f.filename))
 
         at_files = [f for f in files if not f.filename.endswith(".labels.xml")]
 
@@ -654,15 +660,25 @@ def upload_at(entry_id):
 
             transcript = xml.getroot()
             audio = transcript.find("head").find("audio")
+            if audio is None:
+                abort(404, description="{} does not contain head or audio section.".format(
+                    upload_file.filename))
 
-            # TODO find_one might return None
-            source = source_db.find_one({"files.hash": audio.get("hash")})
+            if "hash" in audio.attrib:
+                valid_hashes = [file["hash"] for file in source["files"]]
+                if audio.get("hash") not in valid_hashes:
+                    abort(404, description="Given hash {} does not match hash of any audio "
+                                           "file of the given source.".format(
+                                            audio.get("hash")))
+            else:
+                abort(404, description="Expecting hash attribute in head/audio")
+
             for sf in source["files"]:
                 if sf["hash"] == audio.get("hash"):
                     break
 
             t_item = {
-                "name": upload_file.filename,
+                "name": upload_file.filename[:-4],
                 "group": group_id,
                 "uuid": uid,
                 "audio": {
@@ -723,10 +739,10 @@ def create_at(source_id):
     audios = [f for f in source["files"] if f["kind"] == "audio"]
 
     if not docs:
-        return jsonify("Error: No documents")
+        abort(404, description="Error: No documents")
 
     if len(docs) != len(audios):
-        return jsonify("Error: Number of audio files does not match documents")
+        abort(404, description="Error: Number of audio files does not match documents")
 
     docs.sort(key=lambda f: f["name"])
     audios.sort(key=lambda f: f["name"])
@@ -740,11 +756,10 @@ def create_at(source_id):
                 transcript, filename(audio["uuid"]), "mp3")
         except Exception as e:
             logging.error(e)
-            return jsonify("Force alignment of {}/{} failed"
-                           .format(doc["name"], audio["name"]))
+            abort(404, description="Force alignment of {}/{} failed".format(doc["name"],
+                                                                            audio["name"]))
         element = et.Element("audio")
         element.set("hash", audio["hash"])
-        element.set("handle", source["metadata"]["handle"])
         transcript.find("head").append(element)
         transcripts.append(transcript)
 
@@ -785,6 +800,45 @@ def create_at(source_id):
     return jsonify("Ok")
 
 
+@app.route('/duplicate', methods=['POST'])
+@requires_auth("sources")
+def duplicate():
+    data = request.get_json()
+    id = data.get('_id', None)
+    if id:
+        sources_db = app.data.driver.db["sources"]
+        source_id = ObjectId(id)
+        source = sources_db.find_one({"_id": source_id})
+        if not source:
+            abort(404, description="No source found belonging to the given id \"{}\"".format(id))
+        else:
+            metadata = source['metadata']
+            for key in ['handle', 'dc_identifier', 'status']:
+                if key in metadata:
+                    del metadata[key]
+            files = []
+            for f in source['files']:
+                uid = str(uuid.uuid4())
+                copy_to_store(filename(f['uuid']), uid)
+                file_clone = {
+                    'name': f['name'],
+                    'kind': f['kind'],
+                    'file_type': f['file_type'],
+                    'uuid': uid,
+                    'size': f['size'],
+                    'hash': f['hash']
+                }
+                files.append(file_clone)
+            sources_db.insert({
+                'entry': source['entry'],
+                'metadata': metadata,
+                'files': files
+            })
+            return jsonify("Ok")
+    else:
+        abort(404, description="Missing _id in the posted resource")
+
+
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
@@ -814,6 +868,11 @@ def load_repository_config():
         with open("repository.conf") as f:
             REPOSITORY_SETTINGS = json.load(f)
     return REPOSITORY_SETTINGS
+
+
+@app.errorhandler(404)
+def error(e):
+    return jsonify(error=str(e)), 404
 
 
 if __name__ == '__main__':

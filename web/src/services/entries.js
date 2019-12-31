@@ -5,6 +5,11 @@ import {
   call_raw_service
 } from "./utils.js";
 
+export function duplicate_source(source_id) {
+  return call_service_json("duplicate", {_id:source_id});
+}
+
+
 export function fetch_entries() {
   return call_service_json("entries");
 }
@@ -33,12 +38,22 @@ export function upload_source_files(source_id, files) {
   return call_raw_service("upload/" + source_id, data);
 }
 
-export function upload_at_files(entry_id, files) {
+export function upload_at_files(source_id, files) {
   var data = new FormData();
   for (let f of files) {
     data.append("file", f);
   }
-  return call_raw_service("upload-at/" + entry_id, data);
+  return call_raw_service("upload-at/" + source_id, data).then(response=>{
+    if(response.ok){
+      return response;
+    }else{
+      return Promise.reject(response);
+    }
+  });
+}
+
+export function fetch_all_sources(){
+  return call_service_json('sources')
 }
 
 export function fetch_sources(entry_id) {

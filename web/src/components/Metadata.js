@@ -9,7 +9,8 @@ import {
   Modal
 } from "react-bootstrap";
 import DatePicker from "react-datepicker";
-import {fetch_published_narrators} from "../services/narrators";
+import {fetch_published_narrators, fetch_narrators} from "../services/narrators";
+import {fetch_all_sources} from "../services/entries"
 
 function status_to_name(name) {
   if (!name || name === "x") {
@@ -40,6 +41,8 @@ class MetadataDialog extends Component {
       'viadat_interview_date': new Date().toUTCString()
       }},
       narrators: [],
+      all_sources: [],
+      all_narrators: [],
       autodetecting: false,
       message: null
     };
@@ -52,7 +55,13 @@ class MetadataDialog extends Component {
   reload(){
     fetch_published_narrators().then(n => {
       this.setState(update(this.state,{narrators: {$set: n._items}}))
-    })
+    });
+    fetch_all_sources().then(data => {
+      this.setState(update(this.state, {all_sources: {$set: data._items}}));
+    });
+    fetch_narrators().then(data => {
+      this.setState(update(this.state, {all_narrators: {$set: data._items}}));
+    });
   }
 
   validate_field(field_value) {
@@ -88,7 +97,19 @@ class MetadataDialog extends Component {
     return this.validate_field(this.state.metadata.viadat_interview_date)
   }
   validateIdentifier(){
-      return this.validate_field(this.state.metadata.dc_identifier)
+    //TODO this entire check should rather be in the backend
+    if(this.state.metadata.dc_identifier) {
+      for (const entitiesWithMetadata of [this.state.all_sources, this.state.all_narrators]) {
+        for (const {metadata: {dc_identifier: sig}} of entitiesWithMetadata) {
+          if (this.state.metadata.dc_identifier === sig) {
+            return 'error';
+          }
+        }
+      }
+      return 'success';
+    }else{
+      return 'error';
+    }
   }
 
   validate(){

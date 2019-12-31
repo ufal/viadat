@@ -25,6 +25,7 @@ services:
     - STATIC_FILES=/viadat/files
     - FLASK_ENV=development
     - FLASK_APP=/viadat/backend/service.py
+    - PYTHONUNBUFFERED=1
     ports:
       # expose the backend, this eases the use of localhost:5000 from frontend
       - 5000:5000

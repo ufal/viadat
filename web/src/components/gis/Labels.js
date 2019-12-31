@@ -20,7 +20,7 @@ import {
   update_label
 } from "../../services/labels.js";
 import LabelTree from "./LabelTree";
-import { LocationSelectDialog } from "./MapView";
+import MapView, { LocationSelectDialog, MyMarker} from "./MapView";
 
 class LabelDialog extends Component {
   constructor(props) {
@@ -154,6 +154,16 @@ class LabelDialog extends Component {
 
               {
                 <div style={{ paddingTop: "1em", paddingBottom: "1em" }}>
+                  <h3>Location</h3>
+                  {this.state.label.location &&
+                  <MapView location={this.state.label.location}>
+                    <MyMarker location={this.state.label.location}/>
+                  </MapView>
+                  }
+                  {!this.state.label.location &&
+                      <p>No location is assigned</p>
+                  }
+                  <br/>
                   <LocationSelectDialog
                     show={this.state.location_select_dialog}
                     location={this.state.label.location}
@@ -167,17 +177,13 @@ class LabelDialog extends Component {
                       })
                     }
                   >
-                    Set location
+                    Select new location
                   </Button>
-                  {/*this.state.label.location &&
-                         <MapView location={this.state.label.location}>
-                            <MyMarker location={this.state.label.location}/>
-                         </MapView>
-                        */}
                 </div>
               }
 
               <div style={{ paddingTop: "1em", paddingBottom: "1em" }}>
+                <h3>Date</h3>
                 From{" "}
                 <DatePicker
                   selected={

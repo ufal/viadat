@@ -259,14 +259,14 @@ class LabelCategory extends Component {
           return false;
         }
         if (label.from_date && to_date) {
-          let d = new Date(label.from_date);
-          if (d > to_date) {
+          let begin = new Date(label.from_date);
+          if (begin > to_date) {
             return false;
           }
         }
         if (label.to_date && from_date) {
-          let d = new Date(label.from_date);
-          if (d < from_date) {
+          let end = new Date(label.to_date);
+          if (end < from_date) {
             return false;
           }
         }
@@ -464,7 +464,10 @@ class LabelTree extends Component {
   render() {
     return (
       <div>
+          <h2>Filter the existing labels</h2>
         {this.props.showMap && (
+            <div>
+              <h3>By selecting an area on the map</h3>
           <AreaSelectorMapView
             viewport={{ center: [50.0884, 14.40402], zoom: 16 }}
             onSelect={this.onMapFilter}
@@ -477,29 +480,12 @@ class LabelTree extends Component {
                 </MyMarker>
               ))}
           </AreaSelectorMapView>
+            </div>
         )}
+        <h3>By setting a date filter</h3>
+        <p>Show only those labels having a date range that intersects what you specify here.</p>
         <DateFilter onChange={this.onDateFilterChange} />
-        <Button
-          onClick={() =>
-            this.setState(
-              update(this.state, { showNewTopLevel: { $set: true } })
-            )
-          }
-        >
-          New top level category
-        </Button>
-        <Collapse in={this.state.showNewTopLevel}>
-          <div>
-            <CategoryEditor
-              onSubmit={c => this.onNewTopLevel(c)}
-              onCancel={() =>
-                this.setState(
-                  update(this.state, { showNewTopLevel: { $set: false } })
-                )
-              }
-            />
-          </div>
-        </Collapse>
+        <h3>Edit the existing categories</h3>
         <ListGroup>
           {this.state.nodes.map(node => (
             <LabelCategory
@@ -511,6 +497,28 @@ class LabelTree extends Component {
             />
           ))}
         </ListGroup>
+          <h3>Create new</h3>
+        <Button
+            onClick={() =>
+                this.setState(
+                    update(this.state, { showNewTopLevel: { $set: true } })
+                )
+            }
+        >
+          New top level category
+        </Button>
+        <Collapse in={this.state.showNewTopLevel}>
+          <div>
+            <CategoryEditor
+                onSubmit={c => this.onNewTopLevel(c)}
+                onCancel={() =>
+                    this.setState(
+                        update(this.state, { showNewTopLevel: { $set: false } })
+                    )
+                }
+            />
+          </div>
+        </Collapse>
       </div>
     );
   }

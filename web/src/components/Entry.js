@@ -18,6 +18,7 @@ import {
   autodetect_source_metadata,
   create_source,
   create_transcription,
+  duplicate_source,
   fetch_entry,
   fetch_groups,
   fetch_sources,
@@ -33,6 +34,7 @@ import {
 } from "../services/entries";
 import { Metadata } from "./Metadata";
 import { Upload } from "./Upload";
+import "./entry.css";
 
 
 class EntryNameDialog extends Component {
@@ -126,7 +128,10 @@ const LabelDownloadLink = props => (
 class SourceItem extends Component {
   constructor(props) {
     super(props);
-    this.state = { showUploadDialog: false };
+    this.state = {
+      showUploadDialog: false,
+      showAtUploadDialog: false,
+    };
   }
 
   uploadFiles(files) {
@@ -171,6 +176,34 @@ class SourceItem extends Component {
       });
     }
   };
+
+  uploadAtFiles(files) {
+    return upload_at_files(this.props.source._id, files).then(() => {
+          this.setState(
+              update(this.state, { showAtUploadDialog: { $set: false } })
+          );
+          this.props.entry.reload();
+        },
+        err => {
+          console.error("The uploadAtFiles response was not OK.\n");
+          err.json().then(jserr=>{window.alert(jserr.error)});
+        }
+    );
+  }
+
+  onDuplicate(source) {
+    if (window.confirm("This will clone the source item, you'll have to export it again with a" +
+        " different signature.\nYou can then create new AT or upload the AT and labels you have" +
+        " here.")) {
+      this.setState(update(this.state, { clone_message: { $set: "Cloning ..." } }));
+      duplicate_source(source._id).then(() => {
+            this.setState(update(this.state, {clone_message: {$set: "Cloned"}}));
+            this.props.entry.reload()
+          }
+      );
+    }
+  }
+
 
   render() {
     return (
@@ -241,14 +274,56 @@ class SourceItem extends Component {
             Remove
           </Button>{" "}
           <Button
-            title="You need to publish the item first."
-            disabled={this.canUpload || !!this.state.message}
+            title={this.canUpload ? "You need to publish the item first." :
+                   this.props.hasAT ? "The AT was alreadry created." :
+                                        "Create the annotated transcript"}
+            disabled={this.canUpload || this.props.hasAT}
             onClick={() => this.createAt()}
           >
             Create AT
           </Button>{" "}
           {this.state.message}
+          <Button
+              title={this.canUpload ? "You need to publish the item first." :
+                  this.props.hasAT ? "The AT was alreadry created." :
+                      "Create the annotated transcript"}
+              disabled={this.canUpload || this.props.hasAT}
+              onClick={() =>
+                  this.setState(
+                      update(this.state, { showAtUploadDialog: { $set: true } })
+                  )
+              }
+          >
+            Upload AT
+          </Button>
+          <Upload
+              show={this.state.showAtUploadDialog}
+              accept=".xml"
+              onUpload={files => this.uploadAtFiles(files)}
+              onClose={() =>
+                  this.setState(
+                      update(this.state, { showAtUploadDialog: { $set: false } })
+                  )
+              }
+          />
+          <Button
+              title="Duplicate"
+              onClick={() => this.onDuplicate(this.props.source)}
+          >
+            <Glyphicon glyph="duplicate" />{" "}
+          </Button>
+          {this.state.clone_message}
         </p>
+        <h2>Annotated Transcript</h2>
+        <ListGroup>
+          {this.props.entry.state.groups.filter(g =>
+              g.transcripts && g.transcripts[0] && g.transcripts[0].audio.source._id === this.props.source._id
+          ).map(s => (
+              <ListGroupItem key={s._id}>
+                <GroupItem group={s} entry={this.props.entry} />
+              </ListGroupItem>
+          ))}
+        </ListGroup>
       </div>
     );
   }
@@ -268,8 +343,7 @@ class GroupItem extends Component {
       <div>
         {this.props.group.transcripts.length !== 0 && (
         <div >
-        <h3>{this.props.group.transcripts[0].audio.source.metadata.dc_title}</h3>
-
+        <h3>{this.props.group.metadata.dc_title}</h3>
           <div>
             <Table responsive>
               <thead>
@@ -309,7 +383,6 @@ class GroupItem extends Component {
                 })}
               </tbody>
             </Table>
-            <Button onClick={this.onRemove}>Remove</Button>
             {this.props.group.metadata.status !== 'p' &&
             <Button
                 onClick={e => {
@@ -335,6 +408,9 @@ class GroupItem extends Component {
         <p />
         </div>
         )}
+        <Button disabled={this.props.group.metadata.status === 'p'}
+                title={this.props.group.metadata.status === 'p' ? "This AT was already published" : "Remove the AT."}
+                onClick={this.onRemove}>Remove</Button>
       </div>
     );
   }
@@ -347,7 +423,6 @@ class Entry extends Component {
       entry: null,
       sources: [],
       groups: [],
-      showAtUploadDialog: false,
       showNameDialog: false,
     };
   }
@@ -392,15 +467,6 @@ class Entry extends Component {
     });
   }
 
-  uploadAtFiles(files) {
-    return upload_at_files(this.state.entry._id, files).then(() => {
-      this.setState(
-        update(this.state, { showAtUploadDialog: { $set: false } })
-      );
-      this.reload();
-    });
-  }
-
   onRemove = () => {
     if (window.confirm("Remove entry?")) {
      remove_entry(this.state.entry).then(() => {
@@ -415,9 +481,19 @@ class Entry extends Component {
     })
   }
 
+  hasAT(source, groups) {
+    for (const group of groups){
+      for (const t of group.transcripts){
+        if(t.audio.source._id === source._id){
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+
   render() {
-    // TODO Upload AT should be shown probably only when there are source files
-    // TODO Should I have the option to create AT if one was already created?
     return (
       <div>
         {this.state.entry && (
@@ -444,37 +520,8 @@ class Entry extends Component {
             </p>
             <ListGroup>
               {this.state.sources.map(s => (
-                <ListGroupItem key={s._id}>
-                  <SourceItem source={s} entry={this} />
-                </ListGroupItem>
-              ))}
-            </ListGroup>
-
-            <h2>Annotated Transcripts</h2>
-            <p>
-              <Button
-                onClick={() =>
-                  this.setState(
-                    update(this.state, { showAtUploadDialog: { $set: true } })
-                  )
-                }
-              >
-                Upload AT
-              </Button>
-            </p>
-            <Upload
-              show={this.state.showAtUploadDialog}
-              onUpload={files => this.uploadAtFiles(files)}
-              onClose={() =>
-                this.setState(
-                  update(this.state, { showAtUploadDialog: { $set: false } })
-                )
-              }
-            />
-            <ListGroup>
-              {this.state.groups.map(s => (
-                <ListGroupItem key={s._id}>
-                  <GroupItem group={s} entry={this} />
+                <ListGroupItem key={s._id} className="sourceItem">
+                  <SourceItem source={s} entry={this} hasAT={this.hasAT(s, this.state.groups)} />
                 </ListGroupItem>
               ))}
             </ListGroup>

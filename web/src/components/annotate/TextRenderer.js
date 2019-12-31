@@ -492,6 +492,10 @@ class TextRenderer extends Component {
     );
   }
 
+  get isPublished(){
+    return this.props.transcript.group.metadata.status === 'p';
+  }
+
   render() {
     return (
       <div>
@@ -526,7 +530,10 @@ class TextRenderer extends Component {
                     </p>
                   </Tab>
                   <Tab eventKey="labels" title="Labels">
-                    <Button onClick={() => this.onNewTag()}>New label</Button>
+                    <Button disabled={this.isPublished}
+                            title={this.isPublished ? "This annotated transcript has been" +
+                                " published already." : ""}
+                            onClick={() => this.onNewTag()}>New label</Button>
                     <Checkbox
                       inline
                       onClick={e => this.toggleHint(e.target.checked)}
