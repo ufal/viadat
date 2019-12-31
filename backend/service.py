@@ -611,9 +611,9 @@ def find_or_create_category(full_category_name):
     return category_id
 
 
-@app.route('/upload-at/<entry_id>', methods=['GET', 'POST'])
+@app.route('/upload-at/<source_id>', methods=['GET', 'POST'])
 @requires_auth("sources")
-def upload_at(entry_id):
+def upload_at(source_id):
     entry_db = app.data.driver.db["entries"]
     source_db = app.data.driver.db["sources"]
     group_db = app.data.driver.db["groups"]
@@ -622,12 +622,16 @@ def upload_at(entry_id):
     labels_db = app.data.driver.db["labels"]
     labelinstances_db = app.data.driver.db["labelinstances"]
 
-    entry_id = ObjectId(entry_id)
+    source_id = ObjectId(source_id)
+    source = source_db.find_one({"_id": source_id})
+    if source is None:
+        abort(404, description="ERROR: Source with id {} not found".format(source_id))
+
+    entry_id = source["entry"]
     entry = entry_db.find_one({"_id": entry_id})
     assert entry  # TODO 404
 
-    metadata = {}
-    metadata["dc_title"] = "Uploaded AT"
+    metadata = {"dc_title": "Uploaded AT"}
 
     # TODO a group gets created each time we get here, errors or request methods do not matter
     g_item = {
@@ -661,10 +665,11 @@ def upload_at(entry_id):
                     upload_file.filename))
 
             if "hash" in audio.attrib:
-                source = source_db.find_one({"files.hash": audio.get("hash")})
-                if source is None:
-                    abort(404, description="Given hash {} does not match any audio file.".format(
-                        audio.get("hash")))
+                valid_hashes = [file["hash"] for file in source["files"]]
+                if audio.get("hash") not in valid_hashes:
+                    abort(404, description="Given hash {} does not match hash of any audio "
+                                           "file of the given source.".format(
+                                            audio.get("hash")))
             else:
                 abort(404, description="Expecting hash attribute in head/audio")
 

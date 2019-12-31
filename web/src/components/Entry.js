@@ -178,7 +178,7 @@ class SourceItem extends Component {
   };
 
   uploadAtFiles(files) {
-    return upload_at_files(this.props.entry.state.entry._id, files).then(() => {
+    return upload_at_files(this.props.source._id, files).then(() => {
           this.setState(
               update(this.state, { showAtUploadDialog: { $set: false } })
           );
