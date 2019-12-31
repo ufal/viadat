@@ -195,8 +195,11 @@ class SourceItem extends Component {
     if (window.confirm("This will clone the source item, you'll have to export it again with a" +
         " different signature.\nYou can then create new AT or upload the AT and labels you have" +
         " here.")) {
-      duplicate_source(source._id).then(() =>
-          this.props.entry.reload()
+      this.setState(update(this.state, { clone_message: { $set: "Cloning ..." } }));
+      duplicate_source(source._id).then(() => {
+            this.setState(update(this.state, {clone_message: {$set: "Cloned"}}));
+            this.props.entry.reload()
+          }
       );
     }
   }
@@ -309,6 +312,7 @@ class SourceItem extends Component {
           >
             <Glyphicon glyph="duplicate" />{" "}
           </Button>
+          {this.state.clone_message}
         </p>
         <h2>Annotated Transcript</h2>
         <ListGroup>
